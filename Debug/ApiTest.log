@@ -1,0 +1,7 @@
+﻿  main.cpp
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\Window.h(19,1): warning C4150: удаление указателя на неполный тип "GLFWwindow"; деструктор не вызван
+G:\dev\cpp\ApiTest\ApiTest\include\GLFW\glfw3.h(1182): message : см. объявление "GLFWwindow"
+main.obj : error LNK2019: ссылка на неразрешенный внешний символ _glfwCreateWindow в функции "public: __thiscall Window::Window(struct WindowProperties)" (??0Window@@QAE@UWindowProperties@@@Z).
+G:\dev\cpp\ApiTest\ApiTest\\lib\glfw3.lib : warning LNK4272: тип компьютера библиотеки "x64" конфликтует с типом целевого компьютера "x86"
+G:\dev\cpp\ApiTest\ApiTest\\lib\assimp-vc142-mtd.lib : warning LNK4272: тип компьютера библиотеки "x64" конфликтует с типом целевого компьютера "x86"
+G:\dev\cpp\ApiTest\ApiTest\Debug\ApiTest.exe : fatal error LNK1120: неразрешенных внешних элементов: 1
