@@ -63,8 +63,7 @@ int main() {
         //obj->p_m_transformMatrices->Scale(glm::vec3(5,5,5));
         //container->AddDefaultObject(obj);
 
-        PointLight*
-            pLight = new PointLight;
+        PointLight* pLight = new PointLight;
         pLight->p_m_transformMatrices->Translate(glm::vec3(0, 100.f, 0));
         pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
         pLight->GetPointLightData()->ambientMultiplier = 0.2;

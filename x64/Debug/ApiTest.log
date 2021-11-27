@@ -1,0 +1,65 @@
+﻿  GL_CoreClass.cpp
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\API\VertexArray.h(6,14): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\API\Texture.h(9,10): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(41,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(42,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(46,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(47,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(53,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(54,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_CoreClass.cpp(55,54): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_CoreClass.cpp(59,55): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_CoreClass.cpp(84,37): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_CoreClass.cpp(90,38): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+  GL_Mesh.cpp
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\API\VertexArray.h(6,14): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\API\Texture.h(9,10): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_Mesh.cpp(16,93): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_Mesh.cpp(56,94): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_Mesh.cpp(164,73): warning C4267: аргумент: преобразование из "size_t" в "_Ty"; возможна потеря данных
+          with
+          [
+              _Ty=unsigned int
+          ]
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_Mesh.cpp(251,73): warning C4267: аргумент: преобразование из "size_t" в "_Ty"; возможна потеря данных
+          with
+          [
+              _Ty=unsigned int
+          ]
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_Mesh.cpp(390,13): warning C4267: аргумент: преобразование из "size_t" в "GLsizei"; возможна потеря данных
+  GL_Program.cpp
+  GL_Texture.cpp
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\API\Texture.h(9,10): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_Texture.cpp(53,19): warning C4244: =: преобразование "T" в "unsigned char", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_Texture.cpp(54,19): warning C4244: =: преобразование "T" в "unsigned char", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\GL_Implementation\GL_Texture.cpp(55,19): warning C4244: =: преобразование "T" в "unsigned char", возможна потеря данных
+          with
+          [
+              T=float
+          ]
+  GL_VertexArray.cpp
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\API\VertexArray.h(6,14): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+  Main.cpp
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\API\VertexArray.h(6,14): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\API\Texture.h(9,10): warning C4067: непредвиденные лексемы за директивой препроцессора, требуется newline
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(41,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(42,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(46,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(47,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(53,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(54,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\Main.cpp(31,15): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\Main.cpp(70,61): warning C4305: =: усечение из "double" в "float"
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\Main.cpp(93,65): warning C4305: =: усечение из "double" в "float"
+  Vulkan_Program.cpp
+  Создание кода...
+  glad.c
+  ApiTest.vcxproj -> G:\dev\cpp\ApiTest\ApiTest\x64\Debug\ApiTest.exe
