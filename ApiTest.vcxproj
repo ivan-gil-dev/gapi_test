@@ -150,7 +150,13 @@
     <ClCompile Include="SourceCode\GL_Implementation\GL_VertexArray.cpp" />
     <ClCompile Include="SourceCode\Main.cpp" />
     <ClCompile Include="SourceCode\vendor\glad.c" />
+    <ClCompile Include="SourceCode\vendor\volk.c" />
+    <ClCompile Include="SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp" />
+    <ClCompile Include="SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp" />
     <ClCompile Include="SourceCode\Vulkan_Implementation\Vulkan_Program.cpp" />
+    <ClCompile Include="SourceCode\Vulkan_Implementation\Vulkan_Texture.cpp" />
+    <ClCompile Include="SourceCode\Vulkan_Implementation\Vulkan_VertexArray.cpp" />
+    <ClCompile Include="SourceCode\Vulkan_Implementation\_Vulkan_Handles.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SourceCode\API\Texture.h" />
@@ -162,6 +168,10 @@
     <ClInclude Include="SourceCode\Object.h" />
     <ClInclude Include="SourceCode\CoreClass.h" />
     <ClInclude Include="SourceCode\SceneContainer.h" />
+    <ClInclude Include="SourceCode\Vulkan_Implementation\Vulkan_BufferCreationFunctions.h" />
+    <ClInclude Include="SourceCode\Vulkan_Implementation\Vulkan_CommandBuffer.h" />
+    <ClInclude Include="SourceCode\Vulkan_Implementation\Vulkan_CommandPool.h" />
+    <ClInclude Include="SourceCode\Vulkan_Implementation\_Vulkan_Handles.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

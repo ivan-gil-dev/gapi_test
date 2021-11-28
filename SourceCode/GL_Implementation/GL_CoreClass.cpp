@@ -18,7 +18,7 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
     glfwSwapInterval(0);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) throw ERR_GLAD_INIT_FAIL;
-    p_m_program = new Program;
+    p_m_program = new Program(ProgramType::MAIN_PIPELINE);
 
     glEnable(GL_DEPTH_TEST);
 

@@ -127,7 +127,7 @@ void CheckResult(GLuint shader) { //Проверка результата компиляции шейдера
     }
 }
 
-Program::Program(){
+Program::Program(ProgramType programType){
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertexShader, 1, &vertexShaderSRC, NULL);
     glCompileShader(vertexShader);

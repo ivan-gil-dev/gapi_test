@@ -1,8 +1,20 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
+
 #define MAX_POINTLIGHT_COUNT 32
-#define USE_GL
+#define USE_VK
+#ifdef USE_VK
+    #include "ErrorCodes.h"
+    #include <volk.h>
+
+    struct VkQueueIndices {
+        uint32_t queueIndex1_graphics;
+        uint32_t queueIndex2_command;
+    };
+
+#endif
+
 namespace DataTypes {
     struct Vertex {
         glm::vec3 position;

@@ -22,52 +22,63 @@ class MovingLight : public PointLight{
 };
 
 
-int main() {
-    WindowProperties properties;
-    properties.title = "App";
-    properties.width = 1366;
-    properties.height = 768; 
+SceneContainer* CreateScene() {
+    SceneContainer* container = new SceneContainer;
 
-    srand(time(NULL));
-    
-
-    try{
-        CoreClass app(properties);
-
-        SceneContainer *container = new SceneContainer;     
-
-
-        /*for (size_t i = 1; i < 9; i++)
-        {
-            Object* obj = new Object;
-            obj->p_m_mesh = new Mesh("assets\\teapot.fbx",glm::vec3(255/i,125,125));
-            obj->p_m_transformMatrices->Translate(glm::vec3(10.0f, 7.0f, 10.0f));
-            obj->p_m_transformMatrices->Scale({3,3,3});
-            for (size_t j = 0; j < i; j++)
-            {
-                obj->p_m_transformMatrices->Translate(
-                    glm::vec3(9) * normalize(glm::cross(obj->p_m_transformMatrices->pos, glm::vec3(0, 1, 0)))
-                );
-            }
-            
-            container->AddDefaultObject(obj);
-        }*/
-        
+    /*for (size_t i = 1; i < 9; i++)
+    {
         Object* obj = new Object;
-        obj->p_m_mesh = new Mesh("assets\\sponza\\sponza.obj");
+        obj->p_m_mesh = new Mesh("assets\\teapot.fbx",glm::vec3(255/i,125,125));
+        obj->p_m_transformMatrices->Translate(glm::vec3(10.0f, 7.0f, 10.0f));
+        obj->p_m_transformMatrices->Scale({3,3,3});
+        for (size_t j = 0; j < i; j++)
+        {
+            obj->p_m_transformMatrices->Translate(
+                glm::vec3(9) * normalize(glm::cross(obj->p_m_transformMatrices->pos, glm::vec3(0, 1, 0)))
+            );
+        }
+
         container->AddDefaultObject(obj);
-        
+    }*/
 
-        //Object* obj = new Object;
-        //obj->p_m_mesh = new Mesh(ShapeType::Rectangle,"assets\\sponza\\textures\\vase_plant.png");
-        //obj->p_m_transformMatrices->Scale(glm::vec3(5,5,5));
-        //container->AddDefaultObject(obj);
+    Object* obj = new Object;
+    obj->p_m_mesh = new Mesh("assets\\sponza\\sponza.obj");
+    container->AddDefaultObject(obj);
 
-        PointLight* pLight = new PointLight;
-        pLight->p_m_transformMatrices->Translate(glm::vec3(0, 100.f, 0));
+
+    //Object* obj = new Object;
+    //obj->p_m_mesh = new Mesh(ShapeType::Rectangle,"assets\\sponza\\textures\\vase_plant.png");
+    //obj->p_m_transformMatrices->Scale(glm::vec3(5,5,5));
+    //container->AddDefaultObject(obj);
+
+    PointLight* pLight = new PointLight;
+    pLight->p_m_transformMatrices->Translate(glm::vec3(0, 100.f, 0));
+    pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
+    pLight->GetPointLightData()->ambientMultiplier = 0.2;
+    pLight->GetPointLightData()->diffuseMultiplier = 500.0;
+    pLight->GetPointLightData()->specularMultiplier = 0.5;
+
+
+    float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
+    pLight->GetPointLightData()->color = glm::vec3(
+        r, g, b
+    );
+
+    container->AddPointLightObject(pLight);
+
+
+    for (size_t i = 2; i < MAX_POINTLIGHT_COUNT + 1; i++)
+    {
+        MovingLight*
+            pLight = new MovingLight;
+        pLight->speed = 30;
+        pLight->p_m_transformMatrices->Translate(glm::vec3(i * 7, 2.f, i * 7));
         pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
         pLight->GetPointLightData()->ambientMultiplier = 0.2;
-        pLight->GetPointLightData()->diffuseMultiplier = 500.0;
+        pLight->GetPointLightData()->diffuseMultiplier = 5.0;
         pLight->GetPointLightData()->specularMultiplier = 0.5;
 
 
@@ -80,36 +91,32 @@ int main() {
         );
 
         container->AddPointLightObject(pLight);
+    }
+    return container;
+}
 
+SceneContainer* TestPlane() {
+    SceneContainer* container = new SceneContainer;
 
-        for (size_t i = 2; i < MAX_POINTLIGHT_COUNT + 1; i++)
-        {
-            MovingLight*
-            pLight = new MovingLight;
-            pLight->speed = 30;
-            pLight->p_m_transformMatrices->Translate(glm::vec3(i*7, 2.f, i*7));
-            pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
-            pLight->GetPointLightData()->ambientMultiplier = 0.2;
-            pLight->GetPointLightData()->diffuseMultiplier = 5.0;
-            pLight->GetPointLightData()->specularMultiplier = 0.5;
+    Object *plane = new Object;
+    plane->p_m_mesh = new Mesh(ShapeType::Rectangle, glm::vec3(255,255,255));
+    container->AddDefaultObject(plane);
 
+    return container;
+}
 
-            float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-            float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-            float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+int main() {
+    WindowProperties properties;
+    properties.title = "App";
+    properties.width = 1366;
+    properties.height = 768; 
 
-            pLight->GetPointLightData()->color = glm::vec3(
-                r, g, b
-            );
+    srand(time(NULL));
+    
 
-            container->AddPointLightObject(pLight);
-        }
-
-        
-
-
-        
-        app.Play(container);
+    try{
+        CoreClass app(properties);
+        app.Play(TestPlane());
     }
     catch (const int& e){
         ShowErrorMessage(e);

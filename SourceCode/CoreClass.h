@@ -4,7 +4,11 @@
 #include "DataTypes.h"
 #include "SceneContainer.h"
 #include "Object.h"
-#include <glad/glad.h>
+
+#ifdef USE_GL
+    #include <glad/glad.h>
+#endif
+
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -12,6 +16,10 @@
 #include <vector>
 #include <iostream>
 #include <chrono>
+#ifdef USE_VK
+    #include "Vulkan_Implementation/Vulkan_CommandPool.h"
+#endif
+
 struct WindowProperties {
     int width;
     int height;
@@ -143,8 +151,16 @@ class CoreClass {
     Program *p_m_program;
     Camera m_camera;
     glm::vec3 m_clearColor;
-
     SceneContainer *m_sceneContainer;
+    
+    #ifdef USE_VK
+        CommandPool *m_CommandPool;
+        void PrepareFrame();
+        void DrawFrame();
+    #endif
+
+
+
     public:
     CoreClass(WindowProperties properties);
     ~CoreClass();
