@@ -1,6 +1,12 @@
 #include "../CoreClass.h"
 #include "_Vulkan_Handles.h"
+#include "Vulkan_CommandBuffer.h"
 #ifdef USE_VK
+
+
+std::vector<CommandBuffer> drawCommandBuffers;
+
+int currentFrame = 0;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -13,6 +19,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 
     return VK_FALSE;
 }
+
+
 
 class Instance {
     VkInstance m_instance;
@@ -36,6 +44,7 @@ class Instance {
         const char** p = glfwGetRequiredInstanceExtensions(&extensionsCount);
         std::vector<const char*> extensions(p, p + extensionsCount);
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+
 
         for (size_t i = 0; i < extensions.size(); i++)
             std::cout << extensions[i] << std::endl;
@@ -186,6 +195,7 @@ class Swapchain {
     VkSwapchainKHR m_swapchain;
     std::vector<VkImage> m_SwapchainImages;
     std::vector<VkImageView> m_SwapchainImageViews;
+    VkFormat m_swapchainImageFormat;
     public:
     Swapchain(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice device, int queueIndex) {
         VkSwapchainCreateInfoKHR CreateInfo{};
@@ -215,6 +225,7 @@ class Swapchain {
                 surfaceFormats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 CreateInfo.imageColorSpace = surfaceFormats[i].colorSpace;
                 CreateInfo.imageFormat = surfaceFormats[i].format;
+                m_swapchainImageFormat = surfaceFormats[i].format;
                 break;
             }
         }
@@ -250,7 +261,7 @@ class Swapchain {
         m_SwapchainImages.resize(imagesCount);
         vkGetSwapchainImagesKHR(device, m_swapchain, &imagesCount, m_SwapchainImages.data());
 
-        m_SwapchainImageViews.resize(m_SwapchainImageViews.size());
+        m_SwapchainImageViews.resize(m_SwapchainImages.size());
         for (size_t i = 0; i < m_SwapchainImageViews.size(); i++) {
             VkImageViewCreateInfo ImageViewCreateInfo{};
             ImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -290,6 +301,10 @@ class Swapchain {
         vkDestroySwapchainKHR(device, m_swapchain, nullptr);
     }
 
+    VkFormat GetSwapchainImageFormat() {
+        return m_swapchainImageFormat;
+    }
+
     ~Swapchain() {
         
     }
@@ -300,6 +315,7 @@ class Framebuffer {
     std::vector<VkFramebuffer> m_framebuffers;
     public:
     Framebuffer(VkDevice device, std::vector<VkImageView> swapchainImageViews, VkRenderPass renderpass, int width, int height) {
+        m_framebuffers.resize(swapchainImageViews.size());
         for (size_t i = 0; i < swapchainImageViews.size(); i++) {
             VkImageView attachments[] = {
                 swapchainImageViews[i]
@@ -330,8 +346,57 @@ class Framebuffer {
 
 }*localFramebuffer;
 
+class SyncObjects {
+    std::vector<VkSemaphore> m_imagePrepareSemaphores;
+    std::vector<VkSemaphore> m_imagePresentSemaphores;
+    std::vector<VkFence> m_fences;
+    public:
+    SyncObjects(VkDevice device, unsigned int count) {
+        m_imagePrepareSemaphores.resize(count);
+        m_imagePresentSemaphores.resize(count);
+        m_fences.resize(count);
 
-void FillStaticHandles() {
+        VkSemaphoreCreateInfo semaphoreCreateInfo{};
+        semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        VkFenceCreateInfo fenceCreateInfo{};
+        fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        for (size_t i = 0; i < count; i++)
+        {
+            if (vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &m_imagePrepareSemaphores[i]) != VK_SUCCESS ||
+                vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &m_imagePresentSemaphores[i]) != VK_SUCCESS ||
+                vkCreateFence(device, &fenceCreateInfo, nullptr, &m_fences[i]) != VK_SUCCESS)
+                throw std::runtime_error("Failed to create sync object");
+         }
+            
+        
+    }
+
+    std::vector<VkSemaphore> GetImagePrepareSemaphores() {
+        return m_imagePrepareSemaphores;
+    }
+
+    std::vector<VkSemaphore> GetImagePresentSemaphores() {
+        return m_imagePresentSemaphores;
+    }
+
+    std::vector<VkFence> GetFences() {
+        return m_fences;
+    }
+
+    void DestroySyncObjects(VkDevice device) {
+        for (size_t i = 0; i < m_imagePresentSemaphores.size(); i++)
+        {
+            vkDestroySemaphore(device, m_imagePresentSemaphores[i], nullptr);
+            vkDestroySemaphore(device, m_imagePrepareSemaphores[i], nullptr);
+            vkDestroyFence(device, m_fences[i], nullptr);
+        }
+    }
+}*localSyncObjects;
+
+
+void FillExternHandles() {
     externInstance = localInstance->GetInstance();
     externDevice = localDevice->GetDevice();
     externPhysicalDevice = localDevice->GetPhysicalDevice();
@@ -345,6 +410,10 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 }
 
 CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
+
+    m_width = properties.width;
+    m_height = properties.height;
+
     if (!glfwInit()) throw ERR_GLFW_INIT_FAIL;
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     p_m_window = glfwCreateWindow(m_properties.width, m_properties.height, m_properties.title, nullptr, nullptr);
@@ -362,30 +431,51 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
         localDevice->GetQueueIndices().queueIndex1_graphics
     );
 
-    
+    extern_MAX_FRAMES = localSwapchain->GetSwapchainImageViews().size();
 
     m_CommandPool = new CommandPool;
     m_CommandPool->CreateCommandPool(localDevice->GetQueueIndices().queueIndex1_graphics, localDevice->GetDevice());
 
-    FillStaticHandles();
+    FillExternHandles();
     externCommandPool = m_CommandPool->Get();
    
 
-    p_m_program = new Program(ProgramType::MAIN_PIPELINE);
+    p_m_program = new Program(
+        ProgramType::TEST_PIPELINE, 
+        localSwapchain->GetSwapchainImageFormat(), 
+        properties.width, properties.height
+    );
 
+    externPipeline = p_m_program->GetPipeline();
+    externSetLayout = p_m_program->GetSetLayout();
+    externDescriptorPool = p_m_program->GetDescriptorPool();
+    
     localFramebuffer = new Framebuffer(
         localDevice->GetDevice(),
         localSwapchain->GetSwapchainImageViews(),
         p_m_program->GetRenderPass(),
-        1366,
-        768
+        properties.width,
+        properties.height
     );
 
-    
+    drawCommandBuffers.resize(extern_MAX_FRAMES);
+    for (size_t i = 0; i < extern_MAX_FRAMES; i++)
+        drawCommandBuffers[i].AllocateCommandBuffer(localDevice->GetDevice(), m_CommandPool->Get());
 
 
+    localSyncObjects = new SyncObjects(localDevice->GetDevice(), extern_MAX_FRAMES);
 }
 CoreClass::~CoreClass() {
+
+    for (size_t i = 0; i < extern_MAX_FRAMES; i++)
+    {
+        vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()[i], VK_TRUE, UINT64_MAX);
+    }
+    for (size_t i = 0; i < extern_MAX_FRAMES; i++)
+    {
+        drawCommandBuffers[i].FreeCommandBuffer(localDevice->GetDevice(), m_CommandPool->Get());
+    }
+
     delete m_sceneContainer;
     delete p_m_program;
     glfwDestroyWindow(p_m_window);
@@ -395,7 +485,10 @@ CoreClass::~CoreClass() {
     localSurface->DestroySurface(localInstance->GetInstance());
     m_CommandPool->Destroy(localDevice->GetDevice());
     localFramebuffer->DestroyFramebuffers(localDevice->GetDevice());
+    localSyncObjects->DestroySyncObjects(localDevice->GetDevice());
 
+    
+    delete localSyncObjects;
     delete m_CommandPool;
     delete localSwapchain;
     delete localSurface;
@@ -405,56 +498,84 @@ CoreClass::~CoreClass() {
 }
 
 
-void CoreClass::PrepareFrame() {
-    vkWaitForFences(device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
-    uint32_t imageIndex;
-    vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
 
-    if (imagesInFlight[imageIndex] != VK_NULL_HANDLE) {
-        vkWaitForFences(device, 1, &imagesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
-    }
-    imagesInFlight[imageIndex] = inFlightFences[currentFrame];
+void CoreClass::PrepareFrame(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers) {
+    vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()[currentFrame], VK_TRUE, UINT64_MAX);
+    
+    VkResult result;
+    result = vkAcquireNextImageKHR(
+        localDevice->GetDevice(),
+        localSwapchain->GetSwapchain(),
+        UINT64_MAX,
+        localSyncObjects->GetImagePrepareSemaphores()[currentFrame],
+        VK_NULL_HANDLE,
+        &imageIndex
+    );
 
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    VkRenderPassBeginInfo renderPassBeginInfo;
+    renderPassBeginInfo = {};
+    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassBeginInfo.renderPass = mainRenderPass;
+    renderPassBeginInfo.renderArea.extent.height = m_height;
+    renderPassBeginInfo.renderArea.extent.width = m_width;
+    renderPassBeginInfo.renderArea.offset = { 0,0 };
+    renderPassBeginInfo.framebuffer = frameBuffers[imageIndex];
 
-    VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
-    VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
+    
+    VkClearValue clearColor = { m_clearColor.r,m_clearColor.g,m_clearColor.b,1.0f };
 
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+    VkClearValue clearColors[] = {
+        clearColor
+    };
+    //VkClearValue depthClearColor = { 1.0,0.0f };
 
-    VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
-
-    vkResetFences(device, 1, &inFlightFences[currentFrame]);
+    renderPassBeginInfo.pClearValues = &clearColor;
+    renderPassBeginInfo.clearValueCount = 1;
+    
+    drawCommandBuffers[currentFrame].BeginCommandBuffer();
+    vkCmdBeginRenderPass(drawCommandBuffers[currentFrame].Get(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void CoreClass::DrawFrame() {
-    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS) {
-        throw std::runtime_error("failed to submit draw command buffer!");
-    }
+    vkCmdEndRenderPass(drawCommandBuffers[currentFrame].Get());
+    drawCommandBuffers[currentFrame].EndCommandBuffer();
 
-    VkPresentInfoKHR presentInfo{};
+    VkCommandBuffer commandBuffers[] = { drawCommandBuffers[currentFrame].Get() };
+    VkPipelineStageFlags stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+    VkSemaphore waitSemaphores[] = { localSyncObjects->GetImagePrepareSemaphores()[currentFrame] };
+    VkSemaphore signalSemaphores[] = { localSyncObjects->GetImagePresentSemaphores()[currentFrame] };
+
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = (uint32_t)1;
+    submitInfo.pCommandBuffers = commandBuffers;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pWaitDstStageMask = stages;
+
+    vkResetFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()[currentFrame]);
+    if (vkQueueSubmit(localDevice->GetMainQueue(), 1, &submitInfo, localSyncObjects->GetFences()[currentFrame]) != VK_SUCCESS)  throw ERR_QUEUE_SUBMITION;
+    
+
+    VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-    presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
+    presentInfo.waitSemaphoreCount = 1;
 
-    VkSwapchainKHR swapChains[] = { swapChain };
+    VkSwapchainKHR swapchains[] = { localSwapchain->GetSwapchain() };
     presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
-
+    presentInfo.pSwapchains = swapchains;
+    presentInfo.pResults = 0;
     presentInfo.pImageIndices = &imageIndex;
 
-    vkQueuePresentKHR(presentQueue, &presentInfo);
+    
+    VkResult result = vkQueuePresentKHR(localDevice->GetMainQueue(), &presentInfo); 
 
-    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+    vkDeviceWaitIdle(localDevice->GetDevice());
+    currentFrame = (currentFrame + 1) % extern_MAX_FRAMES;
 }
 
 
@@ -469,15 +590,21 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
         m_camera.Update(p_m_window, DeltaTime);
 
 
-
-
-
         for (size_t i = 0; i < m_sceneContainer->GetObjects()->size(); i++)
         {
             m_sceneContainer->GetObjects()->at(i)->Update(DeltaTime);
             UpdateUniformsForObject(i);
-            m_sceneContainer->GetObjects()->at(i)->Draw();   
         }
+
+        PrepareFrame(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers());
+        for (size_t i = 0; i < m_sceneContainer->GetObjects()->size(); i++)
+            m_sceneContainer->GetObjects()->at(i)->Draw(
+                drawCommandBuffers[currentFrame].Get(),
+                p_m_program->GetPipeline(),
+                p_m_program->GetPipelineLayout(),
+                imageIndex
+            );
+        DrawFrame();
 
         //Обработать оконные события
         glfwPollEvents();
@@ -491,7 +618,8 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
     }
 }
 void CoreClass::UpdateUniformsForObject(int i) {
-
+    glm::vec3 color = glm::vec3(1,0,0);
+    m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_colorUniform.UpdateBuffer(localDevice->GetDevice(), &color);
 }
 
 

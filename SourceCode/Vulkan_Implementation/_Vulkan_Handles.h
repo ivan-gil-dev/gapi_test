@@ -17,3 +17,4 @@ extern VkFormat externDepthFormat;
 extern VkCommandPool externCommandPool;
 extern VkQueue externMainQueue;
 extern unsigned int externMainQueueIndex;
+extern int extern_MAX_FRAMES;

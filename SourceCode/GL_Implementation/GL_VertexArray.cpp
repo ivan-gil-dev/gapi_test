@@ -2,7 +2,7 @@
 
 #ifdef USE_GL
 
-VertexArray::VertexArray(std::vector<DataTypes::Vertex> vertices, std::vector<unsigned int> indices) {
+VertexArray::VertexArray(std::vector<DataTypes::Vertex>& vertices, std::vector<unsigned int>& indices) {
     m_vertices = vertices;
     m_indices = indices;
 

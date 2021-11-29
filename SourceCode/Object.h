@@ -17,9 +17,20 @@ public:
     TransformMatrices* p_m_transformMatrices;
     Mesh* p_m_mesh;
 public:
-    void Draw() {
-        if (p_m_mesh) p_m_mesh->Draw();
-    }
+
+    #ifdef USE_GL
+        void Draw() {
+            if (p_m_mesh) p_m_mesh->Draw();
+        }
+    #endif
+
+    #ifdef USE_VK
+        void Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLayout Layout, int imageIndex) {
+            if (p_m_mesh) p_m_mesh->Draw(commandBuffer, pipeline, Layout, imageIndex);
+        }
+    #endif
+
+
 
     Object() {
         m_type = OBJECT_TYPE_DEFAULT;

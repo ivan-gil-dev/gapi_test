@@ -153,9 +153,13 @@ class CoreClass {
     glm::vec3 m_clearColor;
     SceneContainer *m_sceneContainer;
     
+    int m_width, m_height;
+
     #ifdef USE_VK
+        uint32_t imageIndex;
         CommandPool *m_CommandPool;
-        void PrepareFrame();
+
+        void PrepareFrame(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers);
         void DrawFrame();
     #endif
 

@@ -8,7 +8,8 @@
 #include <string>
 #include <vector>
 enum ProgramType {
-    MAIN_PIPELINE
+    MAIN_PIPELINE,
+    TEST_PIPELINE
 };
 
 class Program {
@@ -23,29 +24,48 @@ class Program {
         VkGraphicsPipelineCreateInfo m_pipelineCreateInfo{};
         VkPipelineLayout m_pipelineLayout;
         VkRenderPass m_renderpass;
-        void CreateRenderpass();
+        void CreateRenderpass(VkFormat SwapchainFormat);
         VkShaderModule CreateShaderModule(VkDevice device, std::vector<char>& code);
         VkDescriptorSetLayout CreateDescriptorSetLayout(ProgramType programType);
+        VkDescriptorPool CreateDescriptorPool(ProgramType programType);
     #endif
 
     public:
  
     #ifdef USE_VK
+        VkPipeline GetPipeline();
         VkRenderPass GetRenderPass() {
             return m_renderpass;
         }
+        VkPipelineLayout GetPipelineLayout() {
+            return m_pipelineLayout;
+        }
+        VkDescriptorSetLayout GetSetLayout() {
+            return m_descriptorSetLayout;
+        }
+        VkDescriptorPool GetDescriptorPool() {
+            return m_descriptorPool;
+        }
+
+        Program(ProgramType programType, VkFormat SwapchainFormat, int width, int height);
+
+    #endif
+    public:
+
+    #ifdef USE_GL
+        Program(ProgramType programType);
+        void UniformMatrix4fv(std::string name, glm::mat4& data);
+        void Uniform3f(std::string name, glm::vec3& data);
+        void UniformPointLightData(DataTypes::PointLightData data, int arrayIndex);
+        void Uniform1i(std::string name, int data);
+        void Uniform1f(std::string name, float data);
     #endif
 
+    
+    
 
-    public:
-    Program(ProgramType programType);
- 
-    void UniformMatrix4fv(std::string name, glm::mat4& data);
-    void Uniform3f(std::string name, glm::vec3& data);
-    void UniformPointLightData(DataTypes::PointLightData data, int arrayIndex);
 
-    void Uniform1i(std::string name, int data);
-    void Uniform1f(std::string name, float data);
+
 
     void UseProgram();
     ~Program();

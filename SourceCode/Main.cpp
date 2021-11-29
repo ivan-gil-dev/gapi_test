@@ -58,7 +58,6 @@ SceneContainer* CreateScene() {
     pLight->GetPointLightData()->diffuseMultiplier = 500.0;
     pLight->GetPointLightData()->specularMultiplier = 0.5;
 
-
     float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
     float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
     float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -100,6 +99,7 @@ SceneContainer* TestPlane() {
 
     Object *plane = new Object;
     plane->p_m_mesh = new Mesh(ShapeType::Rectangle, glm::vec3(255,255,255));
+    plane->p_m_transformMatrices->Scale(glm::vec3(2,2,2));
     container->AddDefaultObject(plane);
 
     return container;

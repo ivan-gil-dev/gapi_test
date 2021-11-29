@@ -32,6 +32,11 @@ class VertexArray {
         GLuint GetVertexArray();
     #endif
 
+    #ifdef USE_VK
+        VkBuffer GetVertexBuffer();
+        VkBuffer GetIndexBuffer();
+    #endif
+
     VertexArray(std::vector<DataTypes::Vertex> &vertices, std::vector<unsigned int> &indices);
     std::vector<unsigned int> GetIndices();
     ~VertexArray();

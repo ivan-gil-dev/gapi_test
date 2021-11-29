@@ -13,3 +13,4 @@ VkFormat externDepthFormat = VK_FORMAT_D16_UNORM;
 unsigned int externMainQueueIndex;
 VkQueue externMainQueue;
 VkCommandPool externCommandPool;
+int extern_MAX_FRAMES;

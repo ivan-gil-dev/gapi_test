@@ -3,12 +3,21 @@
 #include "_Vulkan_Handles.h"
 #ifdef USE_VK
 
+VkBuffer VertexArray::GetIndexBuffer() {
+    return m_IndexBuffer;
+}
+
+VkBuffer VertexArray::GetVertexBuffer() {
+    return m_VertexBuffer;
+}
+
+
 VertexArray::VertexArray(std::vector<DataTypes::Vertex> &vertices, std::vector<unsigned int> &indices){
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingMemory;
 
     VkDeviceSize VertexBufferSize = sizeof(vertices[0]) * vertices.size();
-    VkDeviceSize IndexBufferSize = sizeof(indices[0]) * vertices.size();
+    VkDeviceSize IndexBufferSize = sizeof(indices[0]) * indices.size();
 
     //---vertex-buffer----------------------------------------------------------------------
     //Создание промежуточного буфера в памяти хоста//
@@ -89,7 +98,7 @@ VertexArray::VertexArray(std::vector<DataTypes::Vertex> &vertices, std::vector<u
         m_IndexBuffer,
         m_IndexBufferDeviceMemory,
         //Тип буфера: приемник передачи, вершинный буфер//
-        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+        VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
         //Локальная память GPU//
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     );
@@ -111,7 +120,8 @@ VertexArray::VertexArray(std::vector<DataTypes::Vertex> &vertices, std::vector<u
     vkFreeMemory(externDevice, stagingMemory, nullptr);
     //--------------------------------------------------------------------------------------
 
-
+    m_vertices = vertices;
+    m_indices = indices;
 }
 
 std::vector<unsigned int> VertexArray::GetIndices(){

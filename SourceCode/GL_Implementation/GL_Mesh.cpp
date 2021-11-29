@@ -95,9 +95,9 @@ Mesh::Mesh(ShapeType shapeType, std::string TexturePath) {
 
     if (shapeType == ShapeType::Rectangle) {
 
-        vertices.push_back(Vertex({ 0.5f,0.5f,0.0f }, { 1.0f,1.0f,1.0f }, { 1,1 }));
-        vertices.push_back(Vertex({ 0.5f,-0.5f,0.0f }, { 1.0f,1.0f,1.0f }, { 1,0 }));
-        vertices.push_back(Vertex({ -0.5f,-0.5f,0.0f }, { 1.0f,1.0f,1.0f }, { 0,0 }));
+        vertices.push_back(Vertex({ -0.5f,-0.5f,0.0f }, { 1.0f,1.0f,1.0f }, { 1,1 }));
+        vertices.push_back(Vertex({  0.5f,-0.5f,0.0f }, { 1.0f,1.0f,1.0f }, { 1,0 }));
+        vertices.push_back(Vertex({  0.5f,0.5f,0.0f }, { 1.0f,1.0f,1.0f }, { 0,0 }));
         vertices.push_back(Vertex({ -0.5f,0.5f,0.0f }, { 1.0f,1.0f,1.0f }, { 0,1 }));
 
         indices.push_back(0);

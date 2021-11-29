@@ -4,6 +4,9 @@
 #include <fstream>
 #ifdef USE_VK
 
+VkPipeline Program::GetPipeline() {
+    return m_pipeline;
+}
 
 std::vector<char> ReadShader(std::string path)
 {
@@ -86,14 +89,55 @@ VkDescriptorSetLayout Program::CreateDescriptorSetLayout(ProgramType programType
         if (vkCreateDescriptorSetLayout(externDevice, &CreateInfo, nullptr, &setLayout) != VK_SUCCESS) throw ERR_SET_LAYOUT_CREATION;
     }
 
+    if (programType == TEST_PIPELINE) {
+        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+
+        VkDescriptorSetLayoutBinding colorBinding{};
+        colorBinding.binding = 0;
+        colorBinding.descriptorCount = 1;
+        colorBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        colorBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        setLayoutBindings.push_back(colorBinding);
+
+        VkDescriptorSetLayoutCreateInfo CreateInfo{};
+        CreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        CreateInfo.pBindings = setLayoutBindings.data();
+        CreateInfo.bindingCount = (uint32_t)setLayoutBindings.size();
+        if (vkCreateDescriptorSetLayout(externDevice, &CreateInfo, nullptr, &setLayout) != VK_SUCCESS) throw ERR_SET_LAYOUT_CREATION;
+    }
+
     return setLayout;
-    
 }
 
-void Program::CreateRenderpass() {
+VkDescriptorPool Program::CreateDescriptorPool(ProgramType programType) {
+    VkDescriptorPool pool = VK_NULL_HANDLE;
+    if (programType == TEST_PIPELINE)
+    {
+        std::vector<VkDescriptorPoolSize> poolSizes;
+        VkDescriptorPoolSize color{};
+        color.descriptorCount = 1000;
+        color.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes.push_back(color);
+
+        VkDescriptorPoolCreateInfo createInfo{};
+        createInfo.pPoolSizes = poolSizes.data();
+        createInfo.poolSizeCount = (uint32_t)poolSizes.size();
+        createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        createInfo.maxSets = (uint32_t)1000;
+        createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+
+        if (vkCreateDescriptorPool(externDevice, &createInfo, nullptr, &pool) != VK_SUCCESS) throw ERR_DESCRIPTOR_POOL_CREATION;
+    }
+
+
+    return pool;
+}
+
+
+void Program::CreateRenderpass(VkFormat SwapchainFormat) {
     VkAttachmentDescription colorAttachment{};
-    colorAttachment.format = externSwapchainFormat;
-    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    colorAttachment.format = SwapchainFormat;
+    colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -101,15 +145,15 @@ void Program::CreateRenderpass() {
     colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-    VkAttachmentDescription depthAttachment{};
-    depthAttachment.format = externDepthFormat;
-    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    //VkAttachmentDescription depthAttachment{};
+    //depthAttachment.format = externDepthFormat;
+    //depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    //depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    //depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    //depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    //depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    //depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    //depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     VkSubpassDependency dependency{};
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -123,9 +167,9 @@ void Program::CreateRenderpass() {
     colorAttachmentReference.attachment = (uint32_t)0;
     colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    VkAttachmentReference depthAttachmentReference{};
-    depthAttachmentReference.attachment = (uint32_t)1;
-    depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    //VkAttachmentReference depthAttachmentReference{};
+    //depthAttachmentReference.attachment = (uint32_t)1;
+    //depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     /*VkSubpassDescription subpassDescription{};
     subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -158,15 +202,23 @@ void Program::CreateRenderpass() {
 
 }
 
-Program::Program(ProgramType programType){
+Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, int height){
     
     m_descriptorSetLayout = CreateDescriptorSetLayout(programType);
-    CreateRenderpass();
+    m_descriptorPool = CreateDescriptorPool(programType);
+
+    CreateRenderpass(SwapchainFormat);
     std::vector<char> vertexShader;
     std::vector<char> fragmentShader;
+
     if (programType == MAIN_PIPELINE) {
         vertexShader = ReadShader("SPIRV/programForObj_vert.spv");
         fragmentShader = ReadShader("SPIRV/programForObj_frag.spv");
+    }
+
+    if (programType == TEST_PIPELINE) {
+        vertexShader = ReadShader("SPIRV/programForObj_vert_test.spv");
+        fragmentShader = ReadShader("SPIRV/programForObj_frag_test.spv");
     }
 
     std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
@@ -241,14 +293,15 @@ Program::Program(ProgramType programType){
 
     VkViewport viewport = {};
     viewport.x = 0;
-    viewport.y = 0;
-    viewport.height = (float)768;
-    viewport.width = (float)1366;
+    viewport.y = height;
+    viewport.height = -(float)height;
+    viewport.width = (float)width;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
     VkRect2D scissors = {};
-    scissors.extent = {768, 1366};
+    scissors.extent.height = height;
+    scissors.extent.width = width;
     scissors.offset = {};
 
     VkPipelineViewportStateCreateInfo viewportStateCreateInfo = { VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
@@ -284,9 +337,7 @@ Program::Program(ProgramType programType){
     VkPipelineLayoutCreateInfo PipelineLayoutInfo{};
     PipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     //схема передачи наборов дескрипторов (локации юниформ)//
-    if(programType == ProgramType::MAIN_PIPELINE)
-        PipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-
+    PipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
     PipelineLayoutInfo.setLayoutCount = 1;
 
     //VkPushConstantRange pushConstantRange{};
@@ -337,15 +388,10 @@ Program::Program(ProgramType programType){
     vkDestroyShaderModule(externDevice, fragmentModule, nullptr);
 }
 
-void Program::UniformMatrix4fv(std::string name, glm::mat4& data){}
-void Program::Uniform3f(std::string name, glm::vec3& data){}
-void Program::UniformPointLightData(DataTypes::PointLightData data, int arrayIndex){}
-
-void Program::Uniform1i(std::string name, int data){}
-void Program::Uniform1f(std::string name, float data){}
 
 void Program::UseProgram(){}
 Program::~Program(){
+    vkDestroyDescriptorPool(externDevice, m_descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(externDevice,m_descriptorSetLayout,nullptr);
     vkDestroyPipelineLayout(externDevice, m_pipelineLayout, nullptr);
     vkDestroyRenderPass(externDevice, m_renderpass, nullptr);
