@@ -100,9 +100,9 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
         auto endTime = Timer.now();//ѕолучаем врем€ конца итерации цикла
 
         //¬ычисл€ем разность между временем начала и конца итерации цикла
-        DeltaTime = (double)std::chrono::duration_cast<std::chrono::microseconds>(endTime - beginTime).count();
+        DeltaTime = (double)std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(endTime - beginTime).count();
         //ѕеревод в секунды
-        DeltaTime /= 1000000;
+        DeltaTime /= 1000;
     }
 }
 

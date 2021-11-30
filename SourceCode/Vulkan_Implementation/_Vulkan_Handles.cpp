@@ -5,12 +5,16 @@ VkDevice externDevice;
 VkPhysicalDevice externPhysicalDevice;
 VkSwapchainKHR externSwapchain;
 VkPipeline externPipeline;
-VkDescriptorSetLayout externSetLayout;
 VkSurfaceKHR externSurface;
-VkDescriptorPool externDescriptorPool;
 VkFormat externSwapchainFormat = VK_FORMAT_B8G8R8A8_SRGB;
-VkFormat externDepthFormat = VK_FORMAT_D16_UNORM;
+VkFormat externDepthFormat = VK_FORMAT_D32_SFLOAT;
 unsigned int externMainQueueIndex;
 VkQueue externMainQueue;
 VkCommandPool externCommandPool;
 int extern_MAX_FRAMES;
+
+
+VkDescriptorPool externDescriptorPool_uniforms;
+VkDescriptorSetLayout externSetLayout_uniforms;
+VkDescriptorPool externDescriptorPool_samplers;
+VkDescriptorSetLayout externSetLayout_samplers;

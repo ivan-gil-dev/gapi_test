@@ -3,7 +3,7 @@
 #include <vector>
 
 #ifdef USE_GL
-    #include <glad/glad.h>;
+    #include <glad/glad.h>
 #endif
 
 class VertexArray {

@@ -2,7 +2,6 @@
 #include "../DataTypes.h"
 
 #ifdef USE_GL
-
 const char* vertexShaderSRC = R"glsl(
     #version 440 core
     layout(location = 0) in vec3 v_Pos;

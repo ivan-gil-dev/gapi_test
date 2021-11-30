@@ -17,14 +17,14 @@
         float specularMultiplier;
     };
 
-    layout(binding = 1) uniform PointLightData { 
+    layout(set = 0, binding = 1) uniform PointLightData { 
         PointLightDataStruct data;
     }pointLights[MAX_POINTLIGHT_COUNT]; 
 
-    layout(binding = 2) uniform sampler2D dTexture;
-    layout(binding = 3) uniform sampler2D sTexture;
+    layout(set = 1, binding = 2) uniform sampler2D dTexture;
+    layout(set = 1, binding = 3) uniform sampler2D sTexture;
 
-    layout(binding = 4) uniform CamPosStruct {vec3 cameraPos;} camPosStruct;
+    layout(set = 0, binding = 4) uniform CamPosStruct {vec3 cameraPos;} camPosStruct;
 
     layout(location = 0) out vec4 fragColor;
 

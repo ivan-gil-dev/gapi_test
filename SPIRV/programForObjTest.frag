@@ -6,9 +6,12 @@ layout(location = 3) in vec3 f_FragPos;
 
 layout(binding = 0) uniform ColorStruct {vec3 color;} colorStruct;
 
+layout(binding = 1) uniform sampler2D sampler1;
+
 layout(location = 0) out vec4 fragColor;
 
 void main() 
 { 
-    fragColor = vec4( colorStruct.color, 1.0f ); 
+    vec3 color = vec3(texture( sampler1, f_UV ));
+    fragColor = vec4( color, 1.0f ); 
 }   

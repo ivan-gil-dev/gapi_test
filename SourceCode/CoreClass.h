@@ -32,7 +32,7 @@ protected:
     glm::vec3  pos;
     glm::quat  orientation;
     glm::mat4  projection, translation;
-    float      moveSpeed = 2.f;
+    float      moveSpeed = 200.0f;
 
     bool   firstMouse;
     float  last_x, last_y, yaw, pitch;
@@ -116,25 +116,25 @@ public:
         glm::quat inverseOrientation = glm::conjugate(orientation);
 
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-            pos += inverseOrientation * glm::vec3(0, 0, -1) * moveSpeed;
+            pos += inverseOrientation * glm::vec3(0, 0, -1) * moveSpeed * deltaTime;
             translation = glm::mat4(1.0f);
             translation = glm::translate(translation, -pos);
         }
 
         if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-            pos -= inverseOrientation * glm::vec3(0, 0, -1) * moveSpeed;
+            pos -=  inverseOrientation * glm::vec3(0, 0, -1) * moveSpeed * deltaTime;
             translation = glm::mat4(1.0f);
             translation = glm::translate(translation, -pos);
         }
 
         if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-            pos -= glm::cross(inverseOrientation * glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)) * moveSpeed;
+            pos -=  glm::cross(inverseOrientation * glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)) * moveSpeed * deltaTime;
             translation = glm::mat4(1.0f);
             translation = glm::translate(translation, -pos);
         }
 
         if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-            pos += glm::cross(inverseOrientation * glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)) * moveSpeed;
+            pos += glm::cross(inverseOrientation * glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)) * moveSpeed * deltaTime;
             translation = glm::mat4(1.0f);
             translation = glm::translate(translation, -pos);
         }
@@ -158,6 +158,7 @@ class CoreClass {
     #ifdef USE_VK
         uint32_t imageIndex;
         CommandPool *m_CommandPool;
+        DepthImage *m_DepthImage;
 
         void PrepareFrame(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers);
         void DrawFrame();

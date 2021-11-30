@@ -1,18 +1,27 @@
 #pragma once
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
+
 
 #define MAX_POINTLIGHT_COUNT 32
 #define USE_VK
 #ifdef USE_VK
     #include "ErrorCodes.h"
     #include <volk.h>
+    #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+    #include <glm/glm.hpp>
+    #include <glm/gtx/transform.hpp>
 
     struct VkQueueIndices {
         uint32_t queueIndex1_graphics;
         uint32_t queueIndex2_command;
     };
 
+
+#endif
+
+
+#ifdef USE_GL
+    #include <glm/glm.hpp>
+    #include <glm/gtx/transform.hpp>
 #endif
 
 namespace DataTypes {
@@ -58,15 +67,12 @@ namespace DataTypes {
     };
 
     struct PointLightData {
-        
-        bool isUsed;
         glm::vec3 pos;
         glm::vec3 color;
-
         float ambientMultiplier;
         float diffuseMultiplier;
         float specularMultiplier;
-
+        bool isUsed;
         PointLightData() {
             ambientMultiplier = 0.1f;
             diffuseMultiplier = 0.5f;

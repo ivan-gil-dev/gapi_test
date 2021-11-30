@@ -10,7 +10,7 @@ layout(location = 1) out vec2 f_UV;
 layout(location = 2) out vec3 f_Normal;
 layout(location = 3) out vec3 f_FragPos;    
 
-layout(binding = 0) uniform Mvp{
+layout(set = 0, binding = 0) uniform Mvp{
     uniform mat4 model;
     uniform mat4 view;
     uniform mat4 projection;

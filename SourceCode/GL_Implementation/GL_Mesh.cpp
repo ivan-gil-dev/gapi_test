@@ -402,6 +402,12 @@ Mesh::~Mesh() {
     {
         delete it->second;
     }
+
+    for (it = sTextures.begin(); it != sTextures.end(); it++)
+    {
+        delete it->second;
+    }
+
     for (size_t i = 0; i < vertexArrays.size(); i++)
     {
         delete vertexArrays[i];

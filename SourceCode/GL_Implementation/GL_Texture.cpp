@@ -1,10 +1,12 @@
 #include "../API/Texture.h"
 
-#define STB_IMAGE_IMPLEMENTATION  
-#include <stb_image.h>
+
 
 
 #ifdef USE_GL
+
+#define STB_IMAGE_IMPLEMENTATION  
+#include <stb_image.h>
 Texture::Texture(std::string path) {
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);

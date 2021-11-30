@@ -40,7 +40,8 @@ class Mesh {
         void InitDescriptorSets();
         void ClearDescriptorSets();
 
-        std::vector<VkDescriptorSet> descriptorSets;
+        std::map<int, std::vector<VkDescriptorSet>> materialDescriptorSets;
+        std::vector<VkDescriptorSet> uniformDescriptorSets;
     #endif
 public:
 
@@ -54,7 +55,9 @@ public:
     #endif
 
     #ifdef USE_VK
-        UniformBuffer m_colorUniform;
+        UniformBuffer m_MVP_Uniform;
+        UniformBuffer m_pointLightData_Uniform[MAX_POINTLIGHT_COUNT];
+        UniformBuffer m_CameraPos_Uniform;
 
         void Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLayout Layout, int imageIndex);
     #endif

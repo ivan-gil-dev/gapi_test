@@ -38,8 +38,7 @@ VkShaderModule Program::CreateShaderModule(VkDevice device, std::vector<char>& c
     return shaderModule;
 }
 
-VkDescriptorSetLayout Program::CreateDescriptorSetLayout(ProgramType programType) {
-    VkDescriptorSetLayout setLayout = VK_NULL_HANDLE;
+void Program::CreateDescriptorSetLayout(ProgramType programType) {
     if (programType == ProgramType::MAIN_PIPELINE) {
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
 
@@ -58,6 +57,21 @@ VkDescriptorSetLayout Program::CreateDescriptorSetLayout(ProgramType programType
         pointLightDataBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         setLayoutBindings.push_back(pointLightDataBinding);
 
+        VkDescriptorSetLayoutBinding cameraPosBinding{};
+        cameraPosBinding.binding = 4;
+        cameraPosBinding.descriptorCount = 1;
+        cameraPosBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        cameraPosBinding.pImmutableSamplers = nullptr;
+        cameraPosBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        setLayoutBindings.push_back(cameraPosBinding);
+
+        VkDescriptorSetLayoutCreateInfo CreateInfo{};
+        CreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        CreateInfo.pBindings = setLayoutBindings.data();
+        CreateInfo.bindingCount = (uint32_t)setLayoutBindings.size();
+        if (vkCreateDescriptorSetLayout(externDevice, &CreateInfo, nullptr, &m_descriptorSetLayout_uniforms) != VK_SUCCESS) throw ERR_SET_LAYOUT_CREATION;
+        setLayoutBindings.clear();
+
         VkDescriptorSetLayoutBinding dTextureBinding{};
         dTextureBinding.binding = 2;
         dTextureBinding.descriptorCount = 1;
@@ -74,19 +88,11 @@ VkDescriptorSetLayout Program::CreateDescriptorSetLayout(ProgramType programType
         sTextureBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         setLayoutBindings.push_back(sTextureBinding);
 
-        VkDescriptorSetLayoutBinding cameraPosBinding{};
-        cameraPosBinding.binding = 4;
-        cameraPosBinding.descriptorCount = 1;
-        cameraPosBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        cameraPosBinding.pImmutableSamplers = nullptr;
-        cameraPosBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        setLayoutBindings.push_back(cameraPosBinding);
-
-        VkDescriptorSetLayoutCreateInfo CreateInfo{};
+        CreateInfo = {};
         CreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         CreateInfo.pBindings = setLayoutBindings.data();
         CreateInfo.bindingCount = (uint32_t)setLayoutBindings.size();
-        if (vkCreateDescriptorSetLayout(externDevice, &CreateInfo, nullptr, &setLayout) != VK_SUCCESS) throw ERR_SET_LAYOUT_CREATION;
+        if (vkCreateDescriptorSetLayout(externDevice, &CreateInfo, nullptr, &m_descriptorSetLayout_samplers) != VK_SUCCESS) throw ERR_SET_LAYOUT_CREATION;
     }
 
     if (programType == TEST_PIPELINE) {
@@ -99,18 +105,68 @@ VkDescriptorSetLayout Program::CreateDescriptorSetLayout(ProgramType programType
         colorBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
         setLayoutBindings.push_back(colorBinding);
 
+        VkDescriptorSetLayoutBinding samplerTest{};
+        samplerTest.binding = 1;
+        samplerTest.descriptorCount = 1;
+        samplerTest.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerTest.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        setLayoutBindings.push_back(samplerTest);
+
         VkDescriptorSetLayoutCreateInfo CreateInfo{};
         CreateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         CreateInfo.pBindings = setLayoutBindings.data();
         CreateInfo.bindingCount = (uint32_t)setLayoutBindings.size();
-        if (vkCreateDescriptorSetLayout(externDevice, &CreateInfo, nullptr, &setLayout) != VK_SUCCESS) throw ERR_SET_LAYOUT_CREATION;
+        if (vkCreateDescriptorSetLayout(externDevice, &CreateInfo, nullptr, &m_descriptorSetLayout_uniforms) != VK_SUCCESS) throw ERR_SET_LAYOUT_CREATION;
     }
-
-    return setLayout;
 }
 
-VkDescriptorPool Program::CreateDescriptorPool(ProgramType programType) {
-    VkDescriptorPool pool = VK_NULL_HANDLE;
+void Program::CreateDescriptorPool(ProgramType programType) {
+    if (programType == MAIN_PIPELINE) {
+
+        std::vector<VkDescriptorPoolSize> poolSizes;
+        VkDescriptorPoolSize mvp{};
+        mvp.descriptorCount = 1000;
+        mvp.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes.push_back(mvp);
+
+        VkDescriptorPoolSize pointLightData{};
+        pointLightData.descriptorCount = 1000;
+        pointLightData.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes.push_back(pointLightData);
+
+        VkDescriptorPoolSize cameraPos{};
+        cameraPos.descriptorCount = 1000;
+        cameraPos.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSizes.push_back(cameraPos);
+
+        VkDescriptorPoolCreateInfo createInfo{};
+        createInfo.pPoolSizes = poolSizes.data();
+        createInfo.poolSizeCount = (uint32_t)poolSizes.size();
+        createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        createInfo.maxSets = (uint32_t)10000;
+        createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        if (vkCreateDescriptorPool(externDevice, &createInfo, nullptr, &m_descriptorPool_uniforms) != VK_SUCCESS) throw ERR_DESCRIPTOR_POOL_CREATION;
+        poolSizes.clear();
+
+        VkDescriptorPoolSize dTexture{};
+        dTexture.descriptorCount = 1000;
+        dTexture.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes.push_back(dTexture);
+
+        VkDescriptorPoolSize sTexture{};
+        sTexture.descriptorCount = 1000;
+        sTexture.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes.push_back(sTexture);
+
+        createInfo = {};
+        createInfo.pPoolSizes = poolSizes.data();
+        createInfo.poolSizeCount = (uint32_t)poolSizes.size();
+        createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        createInfo.maxSets = (uint32_t)10000;
+        createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        if (vkCreateDescriptorPool(externDevice, &createInfo, nullptr, &m_descriptorPool_samplers) != VK_SUCCESS) throw ERR_DESCRIPTOR_POOL_CREATION;
+    }
+
     if (programType == TEST_PIPELINE)
     {
         std::vector<VkDescriptorPoolSize> poolSizes;
@@ -119,20 +175,22 @@ VkDescriptorPool Program::CreateDescriptorPool(ProgramType programType) {
         color.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes.push_back(color);
 
+        VkDescriptorPoolSize image{};
+        image.descriptorCount = 1000;
+        image.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        poolSizes.push_back(image);
+
+
         VkDescriptorPoolCreateInfo createInfo{};
         createInfo.pPoolSizes = poolSizes.data();
         createInfo.poolSizeCount = (uint32_t)poolSizes.size();
         createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         createInfo.maxSets = (uint32_t)1000;
         createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-
-        if (vkCreateDescriptorPool(externDevice, &createInfo, nullptr, &pool) != VK_SUCCESS) throw ERR_DESCRIPTOR_POOL_CREATION;
+        if (vkCreateDescriptorPool(externDevice, &createInfo, nullptr, &m_descriptorPool_uniforms) != VK_SUCCESS) throw ERR_DESCRIPTOR_POOL_CREATION;
     }
 
-
-    return pool;
 }
-
 
 void Program::CreateRenderpass(VkFormat SwapchainFormat) {
     VkAttachmentDescription colorAttachment{};
@@ -145,15 +203,15 @@ void Program::CreateRenderpass(VkFormat SwapchainFormat) {
     colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
     colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-    //VkAttachmentDescription depthAttachment{};
-    //depthAttachment.format = externDepthFormat;
-    //depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-    //depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    //depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    //depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-    //depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-    //depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    //depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    VkAttachmentDescription depthAttachment{};
+    depthAttachment.format = externDepthFormat;
+    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     VkSubpassDependency dependency{};
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -167,9 +225,9 @@ void Program::CreateRenderpass(VkFormat SwapchainFormat) {
     colorAttachmentReference.attachment = (uint32_t)0;
     colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-    //VkAttachmentReference depthAttachmentReference{};
-    //depthAttachmentReference.attachment = (uint32_t)1;
-    //depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+    VkAttachmentReference depthAttachmentReference{};
+    depthAttachmentReference.attachment = (uint32_t)1;
+    depthAttachmentReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
     /*VkSubpassDescription subpassDescription{};
     subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -185,14 +243,15 @@ void Program::CreateRenderpass(VkFormat SwapchainFormat) {
     subpassDescription.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpassDescription.colorAttachmentCount = (uint32_t)1;
     subpassDescription.pColorAttachments = &colorAttachmentReference;
+    subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
 
     VkAttachmentDescription attachments[] = {
-        colorAttachment
+        colorAttachment, depthAttachment
     };
 
     VkRenderPassCreateInfo renderPassCreateInfo{};
     renderPassCreateInfo.pAttachments = attachments;
-    renderPassCreateInfo.attachmentCount = (uint32_t)1;
+    renderPassCreateInfo.attachmentCount = (uint32_t)2;
     renderPassCreateInfo.pSubpasses = &subpassDescription;
     renderPassCreateInfo.subpassCount = (uint32_t)1;
     renderPassCreateInfo.dependencyCount = 1;
@@ -204,8 +263,8 @@ void Program::CreateRenderpass(VkFormat SwapchainFormat) {
 
 Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, int height){
     
-    m_descriptorSetLayout = CreateDescriptorSetLayout(programType);
-    m_descriptorPool = CreateDescriptorPool(programType);
+    CreateDescriptorSetLayout(programType);
+    CreateDescriptorPool(programType);
 
     CreateRenderpass(SwapchainFormat);
     std::vector<char> vertexShader;
@@ -314,7 +373,7 @@ Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, i
     rasterizationInfo.sType = { VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
     rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
     rasterizationInfo.depthBiasEnable = VK_FALSE;
-    rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;//Не отрисовывать полигоны на заднем плане//
+    rasterizationInfo.cullMode = VK_CULL_MODE_NONE;//Не отрисовывать полигоны на заднем плане//
     rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;//Заполнение цветом треугольников//
     rasterizationInfo.lineWidth = 1.0f;
     rasterizationInfo.depthClampEnable = VK_FALSE;
@@ -337,8 +396,10 @@ Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, i
     VkPipelineLayoutCreateInfo PipelineLayoutInfo{};
     PipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     //схема передачи наборов дескрипторов (локации юниформ)//
-    PipelineLayoutInfo.pSetLayouts = &m_descriptorSetLayout;
-    PipelineLayoutInfo.setLayoutCount = 1;
+    VkDescriptorSetLayout setLayouts[] = { m_descriptorSetLayout_uniforms, m_descriptorSetLayout_samplers};
+    PipelineLayoutInfo.pSetLayouts = setLayouts;
+    PipelineLayoutInfo.setLayoutCount = 2;
+
 
     //VkPushConstantRange pushConstantRange{};
     ////свойства констант, которые можно передать без буферов//
@@ -391,8 +452,13 @@ Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, i
 
 void Program::UseProgram(){}
 Program::~Program(){
-    vkDestroyDescriptorPool(externDevice, m_descriptorPool, nullptr);
-    vkDestroyDescriptorSetLayout(externDevice,m_descriptorSetLayout,nullptr);
+
+    vkDestroyDescriptorPool(externDevice, m_descriptorPool_samplers, nullptr);
+    vkDestroyDescriptorPool(externDevice, m_descriptorPool_uniforms, nullptr);
+    
+    vkDestroyDescriptorSetLayout(externDevice, m_descriptorSetLayout_samplers, nullptr);
+    vkDestroyDescriptorSetLayout(externDevice, m_descriptorSetLayout_uniforms, nullptr);
+
     vkDestroyPipelineLayout(externDevice, m_pipelineLayout, nullptr);
     vkDestroyRenderPass(externDevice, m_renderpass, nullptr);
     vkDestroyPipeline(externDevice, m_pipeline, nullptr);

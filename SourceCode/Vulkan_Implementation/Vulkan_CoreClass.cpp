@@ -196,6 +196,7 @@ class Swapchain {
     std::vector<VkImage> m_SwapchainImages;
     std::vector<VkImageView> m_SwapchainImageViews;
     VkFormat m_swapchainImageFormat;
+    VkExtent2D m_swapchainExtent;
     public:
     Swapchain(VkSurfaceKHR surface, VkPhysicalDevice physicalDevice, VkDevice device, int queueIndex) {
         VkSwapchainCreateInfoKHR CreateInfo{};
@@ -240,7 +241,7 @@ class Swapchain {
         if (CreateInfo.presentMode != VK_PRESENT_MODE_MAILBOX_KHR) {
             CreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
         }
-
+        CreateInfo.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
         CreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
         CreateInfo.minImageCount = surfaceCapabilities.minImageCount + 1;
         CreateInfo.preTransform = surfaceCapabilities.currentTransform;
@@ -250,7 +251,7 @@ class Swapchain {
         CreateInfo.imageArrayLayers = 1;
 
         VkExtent2D extent = { surfaceCapabilities.currentExtent.width, surfaceCapabilities.currentExtent.height };
-
+        m_swapchainExtent = extent;
         CreateInfo.imageExtent = extent;
         CreateInfo.surface = surface;
 
@@ -305,6 +306,10 @@ class Swapchain {
         return m_swapchainImageFormat;
     }
 
+    VkExtent2D GetSwapchainExtent() {
+        return m_swapchainExtent;
+    }
+
     ~Swapchain() {
         
     }
@@ -314,17 +319,18 @@ class Swapchain {
 class Framebuffer {
     std::vector<VkFramebuffer> m_framebuffers;
     public:
-    Framebuffer(VkDevice device, std::vector<VkImageView> swapchainImageViews, VkRenderPass renderpass, int width, int height) {
+    Framebuffer(VkDevice device, std::vector<VkImageView> swapchainImageViews, VkImageView depthBufferImageView, VkRenderPass renderpass, int width, int height) {
         m_framebuffers.resize(swapchainImageViews.size());
         for (size_t i = 0; i < swapchainImageViews.size(); i++) {
             VkImageView attachments[] = {
-                swapchainImageViews[i]
+                swapchainImageViews[i],
+                depthBufferImageView
             };
 
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = renderpass;
-            framebufferInfo.attachmentCount = 1;
+            framebufferInfo.attachmentCount = 2;
             framebufferInfo.pAttachments = attachments;
             framebufferInfo.width = width;
             framebufferInfo.height = height;
@@ -441,18 +447,33 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
    
 
     p_m_program = new Program(
-        ProgramType::TEST_PIPELINE, 
+        ProgramType::MAIN_PIPELINE, 
         localSwapchain->GetSwapchainImageFormat(), 
         properties.width, properties.height
     );
 
     externPipeline = p_m_program->GetPipeline();
-    externSetLayout = p_m_program->GetSetLayout();
-    externDescriptorPool = p_m_program->GetDescriptorPool();
     
+    externSetLayout_uniforms = p_m_program->GetSetLayout_Uniforms();
+    externSetLayout_samplers = p_m_program->GetSetLayout_Samplers();
+    externDescriptorPool_uniforms = p_m_program->GetDescriptorPool_Uniforms();
+    externDescriptorPool_samplers = p_m_program->GetDescriptorPool_Samplers();
+
+    
+    m_DepthImage = new DepthImage();
+    m_DepthImage->CreateDepthBuffer(
+        localDevice->GetDevice(),
+        localDevice->GetMainQueue(),
+        localSwapchain->GetSwapchainExtent(),
+        localDevice->GetPhysicalDevice(),
+        m_CommandPool->Get()
+    );
+
+
     localFramebuffer = new Framebuffer(
         localDevice->GetDevice(),
         localSwapchain->GetSwapchainImageViews(),
+        m_DepthImage->GetImageView(),
         p_m_program->GetRenderPass(),
         properties.width,
         properties.height
@@ -465,6 +486,7 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
 
     localSyncObjects = new SyncObjects(localDevice->GetDevice(), extern_MAX_FRAMES);
 }
+
 CoreClass::~CoreClass() {
 
     for (size_t i = 0; i < extern_MAX_FRAMES; i++)
@@ -487,7 +509,9 @@ CoreClass::~CoreClass() {
     localFramebuffer->DestroyFramebuffers(localDevice->GetDevice());
     localSyncObjects->DestroySyncObjects(localDevice->GetDevice());
 
-    
+    m_DepthImage->Destroy(localDevice->GetDevice());
+
+    delete m_DepthImage;
     delete localSyncObjects;
     delete m_CommandPool;
     delete localSwapchain;
@@ -497,12 +521,10 @@ CoreClass::~CoreClass() {
     delete localFramebuffer;
 }
 
-
-
-
 void CoreClass::PrepareFrame(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers) {
     vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()[currentFrame], VK_TRUE, UINT64_MAX);
-    
+    //vkDeviceWaitIdle(localDevice->GetDevice());
+
     VkResult result;
     result = vkAcquireNextImageKHR(
         localDevice->GetDevice(),
@@ -513,8 +535,7 @@ void CoreClass::PrepareFrame(VkRenderPass mainRenderPass, std::vector<VkFramebuf
         &imageIndex
     );
 
-    VkRenderPassBeginInfo renderPassBeginInfo;
-    renderPassBeginInfo = {};
+    VkRenderPassBeginInfo renderPassBeginInfo{};
     renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassBeginInfo.renderPass = mainRenderPass;
     renderPassBeginInfo.renderArea.extent.height = m_height;
@@ -523,15 +544,20 @@ void CoreClass::PrepareFrame(VkRenderPass mainRenderPass, std::vector<VkFramebuf
     renderPassBeginInfo.framebuffer = frameBuffers[imageIndex];
 
     
-    VkClearValue clearColor = { m_clearColor.r,m_clearColor.g,m_clearColor.b,1.0f };
+    VkClearValue clearColor{};
+    clearColor.color = { m_clearColor.r,m_clearColor.g,m_clearColor.b,1.0f };
+
+    VkClearValue depthClearColor{};
+    depthClearColor.depthStencil.depth = 1.0f;
+    depthClearColor.depthStencil.stencil = 0;
 
     VkClearValue clearColors[] = {
-        clearColor
+        clearColor, depthClearColor
     };
-    //VkClearValue depthClearColor = { 1.0,0.0f };
-
-    renderPassBeginInfo.pClearValues = &clearColor;
-    renderPassBeginInfo.clearValueCount = 1;
+    
+    
+    renderPassBeginInfo.pClearValues = clearColors;
+    renderPassBeginInfo.clearValueCount = 2;
     
     drawCommandBuffers[currentFrame].BeginCommandBuffer();
     vkCmdBeginRenderPass(drawCommandBuffers[currentFrame].Get(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -573,11 +599,8 @@ void CoreClass::DrawFrame() {
 
     
     VkResult result = vkQueuePresentKHR(localDevice->GetMainQueue(), &presentInfo); 
-
-    vkDeviceWaitIdle(localDevice->GetDevice());
     currentFrame = (currentFrame + 1) % extern_MAX_FRAMES;
 }
-
 
 void CoreClass::Play(SceneContainer* sceneContainer) {
     m_sceneContainer = sceneContainer;
@@ -612,14 +635,37 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
         auto endTime = Timer.now();//Получаем время конца итерации цикла
 
         //Вычисляем разность между временем начала и конца итерации цикла
-        DeltaTime = (double)std::chrono::duration_cast<std::chrono::microseconds>(endTime - beginTime).count();
+        DeltaTime = (double)std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(endTime - beginTime).count();
         //Перевод в секунды
-        DeltaTime /= 1000000;
+        DeltaTime /= 1000;
     }
 }
+
 void CoreClass::UpdateUniformsForObject(int i) {
-    glm::vec3 color = glm::vec3(1,0,0);
-    m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_colorUniform.UpdateBuffer(localDevice->GetDevice(), &color);
+    glm::vec3 nullVector = glm::vec3(0.0f);
+    //Вычислить произведения матрицы переноса, вращения и масштабирования
+    DataTypes::MVP mvp;
+    mvp.model = m_sceneContainer->GetObjects()->at(i)->p_m_transformMatrices->GetModelMatrix();
+    mvp.view = m_camera.GetViewMatrix();
+    mvp.projection = m_camera.GetProjectionMatrix();
+
+    glm::vec3 cameraPos = m_camera.GetPos();
+    
+    m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_MVP_Uniform.UpdateBuffer(localDevice->GetDevice(), &mvp);
+    m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_CameraPos_Uniform.UpdateBuffer(localDevice->GetDevice(), &cameraPos);
+
+
+    for (size_t k = 0; k < MAX_POINTLIGHT_COUNT; k++)
+    {
+        if (k < m_sceneContainer->GetPointLights()->size()) {
+            DataTypes::PointLightData data = *m_sceneContainer->GetPointLights()->at(k)->GetPointLightData();
+            m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_pointLightData_Uniform[k].UpdateBuffer(localDevice->GetDevice(), &data);
+        }
+        else {
+            DataTypes::PointLightData data{};
+            m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_pointLightData_Uniform[k].UpdateBuffer(localDevice->GetDevice(), &data);
+        }
+    }
 }
 
 

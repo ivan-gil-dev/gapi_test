@@ -10,11 +10,11 @@ void ShowErrorMessage(int e);
 class MovingLight : public PointLight{
 
     public:
-    float speed = 1.0f;
+    float speed = 200000.0f;
 
     virtual void Update(double DeltaTime) override {
         p_m_transformMatrices->Translate(
-            speed * float(DeltaTime) * glm::normalize(glm::cross(p_m_transformMatrices->pos,glm::vec3(0,1,0)))
+             glm::normalize(glm::cross(p_m_transformMatrices->pos,glm::vec3(0,1,0))) * speed * float(DeltaTime)
         );
 
     }
@@ -69,8 +69,9 @@ SceneContainer* CreateScene() {
     container->AddPointLightObject(pLight);
 
 
-    for (size_t i = 2; i < MAX_POINTLIGHT_COUNT + 1; i++)
+    //(size_t i = 2; i < MAX_POINTLIGHT_COUNT + 1; i++)
     {
+            int i = 1;
         MovingLight*
             pLight = new MovingLight;
         pLight->speed = 30;
@@ -97,10 +98,27 @@ SceneContainer* CreateScene() {
 SceneContainer* TestPlane() {
     SceneContainer* container = new SceneContainer;
 
-    Object *plane = new Object;
-    plane->p_m_mesh = new Mesh(ShapeType::Rectangle, glm::vec3(255,255,255));
-    plane->p_m_transformMatrices->Scale(glm::vec3(2,2,2));
-    container->AddDefaultObject(plane);
+    MovingLight* pLight = new MovingLight;
+    pLight->p_m_transformMatrices->Translate(glm::vec3(4.f, 4.f, 4.f));
+    pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
+    pLight->GetPointLightData()->ambientMultiplier = 0.2;
+    pLight->GetPointLightData()->diffuseMultiplier = 1.0;
+    pLight->GetPointLightData()->specularMultiplier = 0.5;
+
+    float r = 1.0;
+    float g = 1.0;
+    float b = 1.0;
+
+    pLight->GetPointLightData()->color = glm::vec3(
+        r, g, b
+    );
+
+    container->AddPointLightObject(pLight);
+
+    Object *cube = new Object;
+    cube->p_m_mesh = new Mesh("assets/teapot.fbx", glm::vec3(255,0,255));
+    cube->p_m_transformMatrices->Scale(glm::vec3(2,2,2));
+    container->AddDefaultObject(cube);
 
     return container;
 }
@@ -116,7 +134,7 @@ int main() {
 
     try{
         CoreClass app(properties);
-        app.Play(TestPlane());
+        app.Play(CreateScene());
     }
     catch (const int& e){
         ShowErrorMessage(e);

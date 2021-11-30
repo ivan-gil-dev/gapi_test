@@ -18,16 +18,22 @@ class Program {
     #endif
 
     #ifdef USE_VK
-        VkDescriptorSetLayout m_descriptorSetLayout;
-        VkDescriptorPool m_descriptorPool;
+        VkDescriptorSetLayout m_descriptorSetLayout_uniforms;
+        VkDescriptorPool m_descriptorPool_uniforms;
+
+        VkDescriptorSetLayout m_descriptorSetLayout_samplers;
+        VkDescriptorPool m_descriptorPool_samplers;
+    
+        VkPipelineLayout m_pipelineLayout;
         VkPipeline m_pipeline;
         VkGraphicsPipelineCreateInfo m_pipelineCreateInfo{};
-        VkPipelineLayout m_pipelineLayout;
         VkRenderPass m_renderpass;
+
         void CreateRenderpass(VkFormat SwapchainFormat);
+
         VkShaderModule CreateShaderModule(VkDevice device, std::vector<char>& code);
-        VkDescriptorSetLayout CreateDescriptorSetLayout(ProgramType programType);
-        VkDescriptorPool CreateDescriptorPool(ProgramType programType);
+        void CreateDescriptorSetLayout(ProgramType programType);
+        void CreateDescriptorPool(ProgramType programType);
     #endif
 
     public:
@@ -40,11 +46,21 @@ class Program {
         VkPipelineLayout GetPipelineLayout() {
             return m_pipelineLayout;
         }
-        VkDescriptorSetLayout GetSetLayout() {
-            return m_descriptorSetLayout;
+
+        VkDescriptorSetLayout GetSetLayout_Uniforms() {
+            return m_descriptorSetLayout_uniforms;
         }
-        VkDescriptorPool GetDescriptorPool() {
-            return m_descriptorPool;
+
+        VkDescriptorPool GetDescriptorPool_Uniforms() {
+            return m_descriptorPool_uniforms;
+        }
+
+        VkDescriptorSetLayout GetSetLayout_Samplers() {
+            return m_descriptorSetLayout_samplers;
+        }
+
+        VkDescriptorPool GetDescriptorPool_Samplers() {
+            return m_descriptorPool_samplers;
         }
 
         Program(ProgramType programType, VkFormat SwapchainFormat, int width, int height);
