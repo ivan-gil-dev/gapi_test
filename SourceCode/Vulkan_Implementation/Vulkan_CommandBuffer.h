@@ -14,6 +14,7 @@ public:
             allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
             allocInfo.commandPool = commandPool;
             allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+            
         }
 
         //Выделить командный буфер из пула
@@ -27,6 +28,7 @@ public:
         VkCommandBufferBeginInfo beginInfo = {};
         {
             beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    //        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
         }
 
 
@@ -58,6 +60,10 @@ public:
             vkFreeCommandBuffers(device, commandPool, 1, &m_CommandBuffer);
             m_CommandBuffer = VK_NULL_HANDLE;
         }
+    }
+
+    void ResetCommandBuffer() {
+        vkResetCommandBuffer(m_CommandBuffer, 0);
     }
 
     //Закончить запись//

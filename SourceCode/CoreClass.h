@@ -156,12 +156,13 @@ class CoreClass {
     int m_width, m_height;
 
     #ifdef USE_VK
-        uint32_t imageIndex;
-        CommandPool *m_CommandPool;
+        CommandPool *m_CommandPool, *m_CommandPool2;
         DepthImage *m_DepthImage;
-
-        void PrepareFrame(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers);
-        void DrawFrame();
+        std::vector<CommandBuffer> drawCommandBuffers;
+        std::vector<CommandBuffer> drawCommandBuffers2;
+        void SubmitAllToQueue();
+        void DrawFrame(int currentFrame, VkCommandBuffer commandBuffer);
+        void RecordCommandBuffers(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers, int currentFrame, std::vector<CommandBuffer> &drawCommandBuffers);
     #endif
 
 

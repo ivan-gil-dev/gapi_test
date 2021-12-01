@@ -55,7 +55,7 @@ class PointLight : public Object{
         m_type = OBJECT_TYPE_POINT_LIGHT;
         p_m_data = new PointLightData;
         p_m_data->color = glm::vec3(1.f,1.0f,1.f);
-        p_m_data->isUsed = true;
+        p_m_data->phongParams.w = true;
     }
 
     PointLightData* GetPointLightData() {

@@ -40,7 +40,7 @@ class Mesh {
         void InitDescriptorSets();
         void ClearDescriptorSets();
 
-        std::map<int, unsigned int> indexArrayOffsets;
+        
 
         std::map<int, std::vector<VkDescriptorSet>> materialDescriptorSets;
         std::vector<VkDescriptorSet> uniformDescriptorSets;

@@ -1,10 +1,11 @@
 #include "../CoreClass.h"
 #include "_Vulkan_Handles.h"
 #include "Vulkan_CommandBuffer.h"
+#include <future>
 #ifdef USE_VK
 
 
-std::vector<CommandBuffer> drawCommandBuffers;
+
 
 int currentFrame = 0;
 
@@ -225,8 +226,8 @@ class Swapchain {
             if (surfaceFormats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
                 surfaceFormats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 CreateInfo.imageColorSpace = surfaceFormats[i].colorSpace;
-                CreateInfo.imageFormat = surfaceFormats[i].format;
-                m_swapchainImageFormat = surfaceFormats[i].format;
+                CreateInfo.imageFormat = VK_FORMAT_R8G8B8A8_UNORM;
+                m_swapchainImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
                 break;
             }
         }
@@ -339,7 +340,6 @@ class Framebuffer {
             if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_framebuffers[i]) != VK_SUCCESS) 
                 throw ERR_FRAMEBUFFER_CREATION;
         }
-            
     }
     
     void DestroyFramebuffers(VkDevice device) {
@@ -356,10 +356,14 @@ class SyncObjects {
     std::vector<VkSemaphore> m_imagePrepareSemaphores;
     std::vector<VkSemaphore> m_imagePresentSemaphores;
     std::vector<VkFence> m_fences;
+    
     public:
+    std::vector<VkFence> m_previousFrameFences;
+
     SyncObjects(VkDevice device, unsigned int count) {
         m_imagePrepareSemaphores.resize(count);
         m_imagePresentSemaphores.resize(count);
+        m_previousFrameFences.resize(count);
         m_fences.resize(count);
 
         VkSemaphoreCreateInfo semaphoreCreateInfo{};
@@ -379,17 +383,21 @@ class SyncObjects {
         
     }
 
-    std::vector<VkSemaphore> GetImagePrepareSemaphores() {
-        return m_imagePrepareSemaphores;
+    
+
+    std::vector<VkSemaphore> *GetImagePrepareSemaphores() {
+        return &m_imagePrepareSemaphores;
     }
 
-    std::vector<VkSemaphore> GetImagePresentSemaphores() {
-        return m_imagePresentSemaphores;
+    std::vector<VkSemaphore> *GetImagePresentSemaphores() {
+        return &m_imagePresentSemaphores;
     }
 
-    std::vector<VkFence> GetFences() {
-        return m_fences;
+    std::vector<VkFence> *GetFences() {
+        return &m_fences;
     }
+
+    
 
     void DestroySyncObjects(VkDevice device) {
         for (size_t i = 0; i < m_imagePresentSemaphores.size(); i++)
@@ -409,7 +417,6 @@ void FillExternHandles() {
     externSurface = localSurface->GetSurface();
     externSwapchain = localSwapchain->GetSwapchain();
 }
-
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
     
@@ -438,9 +445,13 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
     );
 
     extern_MAX_FRAMES = localSwapchain->GetSwapchainImageViews().size();
+    extern_Swapchain_Image_View_Count = localSwapchain->GetSwapchainImageViews().size();
 
     m_CommandPool = new CommandPool;
     m_CommandPool->CreateCommandPool(localDevice->GetQueueIndices().queueIndex1_graphics, localDevice->GetDevice());
+
+    m_CommandPool2 = new CommandPool;
+    m_CommandPool2->CreateCommandPool(localDevice->GetQueueIndices().queueIndex1_graphics, localDevice->GetDevice());
 
     FillExternHandles();
     externCommandPool = m_CommandPool->Get();
@@ -458,9 +469,9 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
     externSetLayout_samplers = p_m_program->GetSetLayout_Samplers();
     externDescriptorPool_uniforms = p_m_program->GetDescriptorPool_Uniforms();
     externDescriptorPool_samplers = p_m_program->GetDescriptorPool_Samplers();
-
     
     m_DepthImage = new DepthImage();
+
     m_DepthImage->CreateDepthBuffer(
         localDevice->GetDevice(),
         localDevice->GetMainQueue(),
@@ -484,6 +495,11 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
         drawCommandBuffers[i].AllocateCommandBuffer(localDevice->GetDevice(), m_CommandPool->Get());
 
 
+    drawCommandBuffers2.resize(extern_MAX_FRAMES);
+    for (size_t i = 0; i < extern_MAX_FRAMES; i++)
+        drawCommandBuffers2[i].AllocateCommandBuffer(localDevice->GetDevice(), m_CommandPool2->Get());
+
+
     localSyncObjects = new SyncObjects(localDevice->GetDevice(), extern_MAX_FRAMES);
 }
 
@@ -491,7 +507,7 @@ CoreClass::~CoreClass() {
 
     for (size_t i = 0; i < extern_MAX_FRAMES; i++)
     {
-        vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()[i], VK_TRUE, UINT64_MAX);
+        vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()->at(i), VK_TRUE, UINT64_MAX);
     }
     for (size_t i = 0; i < extern_MAX_FRAMES; i++)
     {
@@ -505,7 +521,10 @@ CoreClass::~CoreClass() {
 
     localSwapchain->DestroySwapchain(localDevice->GetDevice());
     localSurface->DestroySurface(localInstance->GetInstance());
+
     m_CommandPool->Destroy(localDevice->GetDevice());
+    m_CommandPool2->Destroy(localDevice->GetDevice());
+
     localFramebuffer->DestroyFramebuffers(localDevice->GetDevice());
     localSyncObjects->DestroySyncObjects(localDevice->GetDevice());
 
@@ -513,7 +532,10 @@ CoreClass::~CoreClass() {
 
     delete m_DepthImage;
     delete localSyncObjects;
+
     delete m_CommandPool;
+    delete m_CommandPool2;
+
     delete localSwapchain;
     delete localSurface;
     delete localDevice;
@@ -521,56 +543,78 @@ CoreClass::~CoreClass() {
     delete localFramebuffer;
 }
 
-void CoreClass::PrepareFrame(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers) {
-    vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()[currentFrame], VK_TRUE, UINT64_MAX);
-    //vkDeviceWaitIdle(localDevice->GetDevice());
+void CoreClass::RecordCommandBuffers(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers, int currentFrame, std::vector<CommandBuffer> &drawCommandBuffers) {
+        
+       
+        VkRenderPassBeginInfo renderPassBeginInfo{};
+        renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassBeginInfo.renderPass = mainRenderPass;
+        renderPassBeginInfo.renderArea.extent.height = m_height;
+        renderPassBeginInfo.renderArea.extent.width = m_width;
+        renderPassBeginInfo.renderArea.offset = { 0,0 };
+        renderPassBeginInfo.framebuffer = frameBuffers[currentFrame];
+
+        vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()->at(currentFrame), VK_TRUE, UINT64_MAX);
+        drawCommandBuffers[currentFrame].ResetCommandBuffer();
+
+       
+
+        VkClearValue clearColor{};
+        clearColor.color = { m_clearColor.r,m_clearColor.g,m_clearColor.b,1.0f };
+
+        VkClearValue depthClearColor{};
+        depthClearColor.depthStencil.depth = 1.0f;
+        depthClearColor.depthStencil.stencil = 0;
+
+        VkClearValue clearColors[] = {
+            clearColor, depthClearColor
+        };
+
+
+        renderPassBeginInfo.pClearValues = clearColors;
+        renderPassBeginInfo.clearValueCount = 2;
+
+        drawCommandBuffers[currentFrame].BeginCommandBuffer();
+        vkCmdBeginRenderPass(drawCommandBuffers[currentFrame].Get(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+        for (size_t j = 0; j < m_sceneContainer->GetObjects()->size(); j++) {
+            m_sceneContainer->GetObjects()->at(j)->Draw(
+                drawCommandBuffers[currentFrame].Get(),
+                p_m_program->GetPipeline(),
+                p_m_program->GetPipelineLayout(),
+                currentFrame
+            );
+        }
+
+        vkCmdEndRenderPass(drawCommandBuffers[currentFrame].Get());
+        drawCommandBuffers[currentFrame].EndCommandBuffer();
+}
+
+void CoreClass::DrawFrame(int currentFrame, VkCommandBuffer commandBuffer) {
+    uint32_t imageIndex;
+    if (vkGetFenceStatus(localDevice->GetDevice(), localSyncObjects->GetFences()->at(currentFrame)) != VK_SUCCESS)
+    vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()->at(currentFrame), VK_TRUE, 1000000000);
 
     VkResult result;
     result = vkAcquireNextImageKHR(
         localDevice->GetDevice(),
         localSwapchain->GetSwapchain(),
         UINT64_MAX,
-        localSyncObjects->GetImagePrepareSemaphores()[currentFrame],
+        localSyncObjects->GetImagePrepareSemaphores()->at(currentFrame),
         VK_NULL_HANDLE,
         &imageIndex
     );
 
-    VkRenderPassBeginInfo renderPassBeginInfo{};
-    renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassBeginInfo.renderPass = mainRenderPass;
-    renderPassBeginInfo.renderArea.extent.height = m_height;
-    renderPassBeginInfo.renderArea.extent.width = m_width;
-    renderPassBeginInfo.renderArea.offset = { 0,0 };
-    renderPassBeginInfo.framebuffer = frameBuffers[imageIndex];
+    if (localSyncObjects->m_previousFrameFences[imageIndex] != VK_NULL_HANDLE)
+    {
+        vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->m_previousFrameFences[imageIndex], VK_TRUE, 1000000000);
+    }
 
-    
-    VkClearValue clearColor{};
-    clearColor.color = { m_clearColor.r,m_clearColor.g,m_clearColor.b,1.0f };
+    localSyncObjects->m_previousFrameFences[imageIndex] = localSyncObjects->GetFences()->at(currentFrame);
 
-    VkClearValue depthClearColor{};
-    depthClearColor.depthStencil.depth = 1.0f;
-    depthClearColor.depthStencil.stencil = 0;
-
-    VkClearValue clearColors[] = {
-        clearColor, depthClearColor
-    };
-    
-    
-    renderPassBeginInfo.pClearValues = clearColors;
-    renderPassBeginInfo.clearValueCount = 2;
-    
-    drawCommandBuffers[currentFrame].BeginCommandBuffer();
-    vkCmdBeginRenderPass(drawCommandBuffers[currentFrame].Get(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-}
-
-void CoreClass::DrawFrame() {
-    vkCmdEndRenderPass(drawCommandBuffers[currentFrame].Get());
-    drawCommandBuffers[currentFrame].EndCommandBuffer();
-
-    VkCommandBuffer commandBuffers[] = { drawCommandBuffers[currentFrame].Get() };
-    VkPipelineStageFlags stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-    VkSemaphore waitSemaphores[] = { localSyncObjects->GetImagePrepareSemaphores()[currentFrame] };
-    VkSemaphore signalSemaphores[] = { localSyncObjects->GetImagePresentSemaphores()[currentFrame] };
+    VkCommandBuffer commandBuffers[] = { commandBuffer };
+    VkSemaphore waitSemaphores[] = { localSyncObjects->GetImagePrepareSemaphores()->at(currentFrame) };
+    VkSemaphore signalSemaphores[] = { localSyncObjects->GetImagePresentSemaphores()->at(currentFrame) };
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -580,12 +624,12 @@ void CoreClass::DrawFrame() {
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.signalSemaphoreCount = 1;
+    VkPipelineStageFlags stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submitInfo.pWaitDstStageMask = stages;
 
-    vkResetFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()[currentFrame]);
-    if (vkQueueSubmit(localDevice->GetMainQueue(), 1, &submitInfo, localSyncObjects->GetFences()[currentFrame]) != VK_SUCCESS)  throw ERR_QUEUE_SUBMITION;
+    vkResetFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()->at(currentFrame));
+    if (vkQueueSubmit(localDevice->GetMainQueue(), 1, &submitInfo, localSyncObjects->GetFences()->at(currentFrame)) != VK_SUCCESS)  throw ERR_QUEUE_SUBMITION;
     
-
     VkPresentInfoKHR presentInfo = {};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.pWaitSemaphores = signalSemaphores;
@@ -595,17 +639,19 @@ void CoreClass::DrawFrame() {
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapchains;
     presentInfo.pResults = 0;
-    presentInfo.pImageIndices = &imageIndex;
+    presentInfo.pImageIndices = &(imageIndex);
 
-    
-    VkResult result = vkQueuePresentKHR(localDevice->GetMainQueue(), &presentInfo); 
-    currentFrame = (currentFrame + 1) % extern_MAX_FRAMES;
+    result = vkQueuePresentKHR(localDevice->GetMainQueue(), &presentInfo); 
 }
 
 void CoreClass::Play(SceneContainer* sceneContainer) {
     m_sceneContainer = sceneContainer;
+
+   
     while (!glfwWindowShouldClose(p_m_window))//Пока окно не закрыто
     {
+        //Обработать оконные события
+        glfwPollEvents();
         auto beginTime = Timer.now();//Получаем время начала итерации цикла
 
         //Выставить значение состояния текущей используемой программы
@@ -613,25 +659,44 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
         m_camera.Update(p_m_window, DeltaTime);
 
 
+        /*auto updateObjects = std::async(std::launch::async,
+            [this]() {
+                for (size_t i = 0; i < m_sceneContainer->GetObjects()->size(); i++)
+                {
+                    m_sceneContainer->GetObjects()->at(i)->Update(DeltaTime);
+                    UpdateUniformsForObject(i);
+                }
+
+                RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), currentFrame, drawCommandBuffers);
+            }
+        );  
+        updateObjects.wait();*/
+
+
+        /*auto drawFirstFrame = std::async(std::launch::async,
+            [this]() {
+                DrawFrame(currentFrame, drawCommandBuffers[currentFrame].Get());
+                currentFrame = (currentFrame + 1) % extern_MAX_FRAMES;
+            }
+        );
+        drawFirstFrame.wait();*/
+
+
+    
+        
+
         for (size_t i = 0; i < m_sceneContainer->GetObjects()->size(); i++)
         {
             m_sceneContainer->GetObjects()->at(i)->Update(DeltaTime);
             UpdateUniformsForObject(i);
         }
 
-        PrepareFrame(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers());
-        for (size_t i = 0; i < m_sceneContainer->GetObjects()->size(); i++)
-            m_sceneContainer->GetObjects()->at(i)->Draw(
-                drawCommandBuffers[currentFrame].Get(),
-                p_m_program->GetPipeline(),
-                p_m_program->GetPipelineLayout(),
-                imageIndex
-            );
-        DrawFrame();
+        RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), currentFrame, drawCommandBuffers);
 
-        //Обработать оконные события
-        glfwPollEvents();
+        DrawFrame(currentFrame, drawCommandBuffers[currentFrame].Get());
+        currentFrame = (currentFrame + 1) % extern_MAX_FRAMES;
 
+        
         auto endTime = Timer.now();//Получаем время конца итерации цикла
 
         //Вычисляем разность между временем начала и конца итерации цикла

@@ -10,7 +10,7 @@ void ShowErrorMessage(int e);
 class MovingLight : public PointLight{
 
     public:
-    float speed = 200000.0f;
+    float speed = 10.0f;
 
     virtual void Update(double DeltaTime) override {
         p_m_transformMatrices->Translate(
@@ -54,9 +54,9 @@ SceneContainer* CreateScene() {
     PointLight* pLight = new PointLight;
     pLight->p_m_transformMatrices->Translate(glm::vec3(0, 100.f, 0));
     pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
-    pLight->GetPointLightData()->ambientMultiplier = 0.2;
-    pLight->GetPointLightData()->diffuseMultiplier = 500.0;
-    pLight->GetPointLightData()->specularMultiplier = 0.5;
+    pLight->GetPointLightData()->phongParams.x = 0.2;
+    pLight->GetPointLightData()->phongParams.y = 500.0;
+    pLight->GetPointLightData()->phongParams.z = 0.5;
 
     float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
     float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
@@ -69,41 +69,41 @@ SceneContainer* CreateScene() {
     container->AddPointLightObject(pLight);
 
 
-    //(size_t i = 2; i < MAX_POINTLIGHT_COUNT + 1; i++)
-    {
-            int i = 1;
-        MovingLight*
-            pLight = new MovingLight;
-        pLight->speed = 30;
-        pLight->p_m_transformMatrices->Translate(glm::vec3(i * 7, 2.f, i * 7));
-        pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
-        pLight->GetPointLightData()->ambientMultiplier = 0.2;
-        pLight->GetPointLightData()->diffuseMultiplier = 5.0;
-        pLight->GetPointLightData()->specularMultiplier = 0.5;
+    //for(size_t i = 2; i < MAX_POINTLIGHT_COUNT + 1; i++)
+    //{
+    //        //int i = 1;
+    //    MovingLight*
+    //        pLight = new MovingLight;
+    //    pLight->speed = 30;
+    //    pLight->p_m_transformMatrices->Translate(glm::vec3(i * 7, 2.f, i * 7));
+    //    pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
+    //    pLight->GetPointLightData()->phongParams.x = 0.2;
+    //    pLight->GetPointLightData()->phongParams.y = 5.0;
+    //    pLight->GetPointLightData()->phongParams.z = 0.5;
 
 
-        float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-        float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-        float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    //    float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    //    float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    //    float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
-        pLight->GetPointLightData()->color = glm::vec3(
-            r, g, b
-        );
+    //    pLight->GetPointLightData()->color = glm::vec3(
+    //        r, g, b
+    //    );
 
-        container->AddPointLightObject(pLight);
-    }
+    //    container->AddPointLightObject(pLight);
+    //}
     return container;
 }
 
-SceneContainer* TestPlane() {
+SceneContainer* TestKettle() {
     SceneContainer* container = new SceneContainer;
 
     MovingLight* pLight = new MovingLight;
     pLight->p_m_transformMatrices->Translate(glm::vec3(4.f, 4.f, 4.f));
     pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
-    pLight->GetPointLightData()->ambientMultiplier = 0.2;
-    pLight->GetPointLightData()->diffuseMultiplier = 1.0;
-    pLight->GetPointLightData()->specularMultiplier = 0.5;
+    pLight->GetPointLightData()->phongParams.x = 0.2;
+    pLight->GetPointLightData()->phongParams.y = 1.0;
+    pLight->GetPointLightData()->phongParams.z = 0.5;
 
     float r = 1.0;
     float g = 1.0;
@@ -134,7 +134,7 @@ int main() {
 
     try{
         CoreClass app(properties);
-        app.Play(CreateScene());
+        app.Play(TestKettle());
     }
     catch (const int& e){
         ShowErrorMessage(e);

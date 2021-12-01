@@ -7,7 +7,7 @@ void Mesh::InitDescriptorSets() {
     
     
     {
-        std::vector<VkDescriptorSetLayout> setLayouts(extern_MAX_FRAMES, externSetLayout_uniforms);
+        std::vector<VkDescriptorSetLayout> setLayouts(extern_Swapchain_Image_View_Count, externSetLayout_uniforms);
 
         VkDescriptorSetAllocateInfo allocateInfo{};
         allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -66,7 +66,7 @@ void Mesh::InitDescriptorSets() {
         writeDescriptorSets.resize(0);
     }
 
-    std::vector<VkDescriptorSetLayout> setLayouts(extern_MAX_FRAMES, externSetLayout_samplers);
+    std::vector<VkDescriptorSetLayout> setLayouts(extern_Swapchain_Image_View_Count, externSetLayout_samplers);
 
     for (size_t i = 0; i < material_ID.size(); i++){
         if (!materialDescriptorSets.count(material_ID[i]))
@@ -542,23 +542,20 @@ void Mesh::Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLa
         VK_PIPELINE_BIND_POINT_GRAPHICS,
         pipeline
     );
-    int debugTemp = 0;
-    /*int debugTemp;
-    if (vertexArrays.size()>200)
-    {
-        debugTemp = 390;
-    }else debugTemp = 0;*/
+  
     
-    for (size_t i = 0; i < vertexArrays.size() - debugTemp; i++)
+    for (size_t i = 0; i < material_ID.size(); i++)
     {
         VkBuffer buffers[] = { vertexArrays[i]->GetVertexBuffer() };
         VkDeviceSize offsets[] = { 0 };
 
-        VkDescriptorSet sets[] = {uniformDescriptorSets[imageIndex], materialDescriptorSets[material_ID[i]][imageIndex]};
-
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
+
+
+        VkDescriptorSet Sets[] = { uniformDescriptorSets[0], materialDescriptorSets[material_ID[i]][0] };
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Layout,
-             0, 2, sets, 0, nullptr);
+            0, 2, Sets, 0, nullptr);
+
          /*
          DataTypes::PushConstants constants;
          constants.diffuseMapId = Shapes[i].MatID;*/
@@ -566,6 +563,7 @@ void Mesh::Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLa
         //vkCmdPushConstants(commandBuffer, renderer.graphicsPipelineForMesh.GetPipelineLayout(),
         //    VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(constants), &constants);
 
+        
         vkCmdBindIndexBuffer(commandBuffer, vertexArrays[i]->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(commandBuffer, (uint32_t)vertexArrays[i]->GetIndices().size(), 1, 0, 0, 0);
     }

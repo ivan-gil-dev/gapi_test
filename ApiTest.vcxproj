@@ -159,12 +159,12 @@
     <ClCompile Include="SourceCode\Vulkan_Implementation\_Vulkan_Handles.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="SourceCode\API\Mesh.h" />
     <ClInclude Include="SourceCode\API\Texture.h" />
     <ClInclude Include="SourceCode\DataTypes.h" />
     <ClInclude Include="SourceCode\ErrorCodes.h" />
     <ClInclude Include="SourceCode\API\Program.h" />
     <ClInclude Include="SourceCode\API\VertexArray.h" />
-    <ClInclude Include="SourceCode\API\Mesh.h" />
     <ClInclude Include="SourceCode\Object.h" />
     <ClInclude Include="SourceCode\CoreClass.h" />
     <ClInclude Include="SourceCode\SceneContainer.h" />

@@ -41,7 +41,7 @@ void Texture::CreateSampler(VkDevice device) {
     samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.anisotropyEnable = VK_FALSE;
-    samplerInfo.maxAnisotropy = 16.0f;
+    samplerInfo.maxAnisotropy = 1.0f;
     samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerInfo.unnormalizedCoordinates = VK_FALSE;
     samplerInfo.compareEnable = VK_FALSE;
@@ -69,6 +69,7 @@ Texture::Texture(std::string path){
         Failed = true;
         std::cout << "Failed to load Image" << std::endl;
     }
+    
 
     //В одном пикселе 4 байта -> Размер изображения = ширина * высота * 4 байт
     VkDeviceSize imageSize = texHeight * texWidth * 4;
@@ -94,6 +95,9 @@ Texture::Texture(std::string path){
     vkUnmapMemory(externDevice, bufferMemory);
 
 
+    VkFormat ImageFormat = VK_FORMAT_R8G8B8A8_SRGB;
+
+
     //Создание изображения//
     Img_Func_CreateImage(
         externPhysicalDevice,
@@ -104,7 +108,7 @@ Texture::Texture(std::string path){
         texHeight,
         VK_IMAGE_TILING_OPTIMAL,
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-        VK_FORMAT_R8G8B8A8_SRGB,
+        ImageFormat,
         //Изображение используется для приема данных и для отрисовки//
         VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
         VK_SAMPLE_COUNT_1_BIT,

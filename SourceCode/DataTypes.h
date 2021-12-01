@@ -1,8 +1,10 @@
 #pragma once
-
-
 #define MAX_POINTLIGHT_COUNT 32
-#define USE_VK
+#define USE_GL
+
+
+
+
 #ifdef USE_VK
     #include "ErrorCodes.h"
     #include <volk.h>
@@ -69,17 +71,31 @@ namespace DataTypes {
     struct PointLightData {
         glm::vec3 pos;
         glm::vec3 color;
-        float ambientMultiplier;
-        float diffuseMultiplier;
-        float specularMultiplier;
-        bool isUsed;
+
+        glm::vec4 phongParams;
+        
+        //#ifdef USE_GL
+        //        float ambientMultiplier;
+        //        float diffuseMultiplier;
+        //        float specularMultiplier;
+        //        bool isUsed;
+        //#endif // USE_GL
+        //#ifdef USE_VK
+        //        alignas(4) float ambientMultiplier;
+        //        alignas(4) float diffuseMultiplier;
+        //        alignas(4) float specularMultiplier;
+        //        alignas(4) uint32_t isUsed;
+        //#endif // USE_VK
+
+        
         PointLightData() {
-            ambientMultiplier = 0.1f;
-            diffuseMultiplier = 0.5f;
-            specularMultiplier = 0.9f;
+            phongParams.x = 0.1f;//Ambient
+            phongParams.y = 0.5f;//Diffuse
+            phongParams.z = 0.9f;//Specular
+            phongParams.w = false;//Is Used
+
             color = glm::vec3(0,0,0);
-            pos = glm::vec3(0,0,0);
-            isUsed = false;
+            pos = glm::vec3(0,0,0);            
         }
     };
 

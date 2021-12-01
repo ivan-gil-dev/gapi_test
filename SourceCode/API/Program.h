@@ -72,6 +72,7 @@ class Program {
         Program(ProgramType programType);
         void UniformMatrix4fv(std::string name, glm::mat4& data);
         void Uniform3f(std::string name, glm::vec3& data);
+        void Uniform4f(std::string name, glm::vec4& data);
         void UniformPointLightData(DataTypes::PointLightData data, int arrayIndex);
         void Uniform1i(std::string name, int data);
         void Uniform1f(std::string name, float data);

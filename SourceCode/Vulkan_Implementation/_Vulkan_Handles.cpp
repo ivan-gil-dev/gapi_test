@@ -13,6 +13,7 @@ VkQueue externMainQueue;
 VkCommandPool externCommandPool;
 int extern_MAX_FRAMES;
 
+int extern_Swapchain_Image_View_Count;
 
 VkDescriptorPool externDescriptorPool_uniforms;
 VkDescriptorSetLayout externSetLayout_uniforms;

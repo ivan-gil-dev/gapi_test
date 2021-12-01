@@ -11,10 +11,7 @@
     struct PointLightDataStruct{
         vec3 pos;
         vec3 color;
-        bool isUsed;
-        float ambientMultiplier;
-        float diffuseMultiplier;
-        float specularMultiplier;
+        vec4 phongParams;
     };
 
     layout(set = 0, binding = 1) uniform PointLightData { 
@@ -52,9 +49,9 @@
         
         float attenuation = 1 /(constant + distance * linear + distance * distance * quadratic);
         
-        vec3 ambientComponent = pointLightData.ambientMultiplier * pointLightData.color * vec3(albedoColor);
-        vec3 diffuseComponent = pointLightData.diffuseMultiplier * max( dot(Normal, lightDir), 0.0f) * pointLightData.color * vec3(albedoColor);                        
-        vec3 specularComponent = pointLightData.specularMultiplier * pow(max(dot( viewDir, reflectDir ), 0.0f),32) * pointLightData.color * specularColor;
+        vec3 ambientComponent = pointLightData.phongParams.x * pointLightData.color * vec3(albedoColor);
+        vec3 diffuseComponent = pointLightData.phongParams.y * max( dot(Normal, lightDir), 0.0f) * pointLightData.color * vec3(albedoColor);                        
+        vec3 specularComponent = pointLightData.phongParams.z * pow(max(dot( viewDir, reflectDir ), 0.0f),32) * pointLightData.color * specularColor;
 
 
         ambientComponent *= attenuation;
@@ -72,7 +69,7 @@
         vec3 viewDir = normalize(camPosStruct.cameraPos - f_FragPos);
         
         for(int i = 0; i < MAX_POINTLIGHT_COUNT; i++){
-            if(pointLights[i].data.isUsed)
+            if(pointLights[i].data.phongParams.w != 0)
             result += CalcPointLight(viewDir, pointLights[i].data);
         }
 

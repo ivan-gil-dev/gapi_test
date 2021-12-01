@@ -47,10 +47,7 @@ const char* fragmentShaderSRC = R"glsl(
     struct PointLightData{
         vec3 pos;
         vec3 color;
-        bool isUsed;
-        float ambientMultiplier;
-        float diffuseMultiplier;
-        float specularMultiplier;
+        vec4 phongParams;
     };
 
     uniform PointLightData pointLights[MAX_POINTLIGHT_COUNT]; 
@@ -82,9 +79,9 @@ const char* fragmentShaderSRC = R"glsl(
         
         float attenuation = 1 /(constant + distance * linear + distance * distance * quadratic);
         
-        vec3 ambientComponent = pointLight.ambientMultiplier * pointLight.color * vec3(albedoColor);
-        vec3 diffuseComponent = pointLight.diffuseMultiplier * max( dot(Normal, lightDir), 0.0f) * pointLight.color * vec3(albedoColor);                        
-        vec3 specularComponent = pointLight.specularMultiplier * pow(max(dot( viewDir, reflectDir ), 0.0f),32) * pointLight.color * specularColor;
+        vec3 ambientComponent = pointLight.phongParams.x * pointLight.color * vec3(albedoColor);
+        vec3 diffuseComponent = pointLight.phongParams.y * max( dot(Normal, lightDir), 0.0f) * pointLight.color * vec3(albedoColor);                        
+        vec3 specularComponent = pointLight.phongParams.z * pow(max(dot( viewDir, reflectDir ), 0.0f),32) * pointLight.color * specularColor;
 
 
         ambientComponent *= attenuation;
@@ -102,7 +99,7 @@ const char* fragmentShaderSRC = R"glsl(
         vec3 viewDir = normalize(cameraPos - f_FragPos);
         
         for(int i = 0; i < MAX_POINTLIGHT_COUNT; i++){
-            if(pointLights[i].isUsed)
+            if(pointLights[i].phongParams.w != 0)
             result += CalcPointLight(viewDir, pointLights[i]);
         }
 
@@ -171,6 +168,11 @@ void Program::Uniform3f(std::string name, glm::vec3& data) {
     glUniform3f(location, data.x, data.y, data.z);
 }
 
+void Program::Uniform4f(std::string name, glm::vec4& data) {
+    GLuint location = glGetUniformLocation(m_program, name.c_str());
+    glUniform4f(location, data.x, data.y, data.z, data.w);
+}
+
 void Program::Uniform1f(std::string name, float data) {
     GLuint location = glGetUniformLocation(m_program, name.c_str());
     glUniform1f(location,data);
@@ -187,17 +189,9 @@ void Program::UniformPointLightData(DataTypes::PointLightData data, int arrayInd
     std::string colorLocation = structLocation + ".color";
     Uniform3f(colorLocation, data.color);
 
-    std::string isUsedLocation = structLocation + ".isUsed";
-    Uniform1i(isUsedLocation, data.isUsed);
-        
-    std::string ambientMultiplierLocation = structLocation + ".ambientMultiplier";
-    Uniform1f(ambientMultiplierLocation, data.ambientMultiplier);
-
-    std::string diffuseMultiplierLocation = structLocation + ".diffuseMultiplier";
-    Uniform1f(diffuseMultiplierLocation, data.diffuseMultiplier);
-
-    std::string specularMultiplierLocation = structLocation + ".specularMultiplier";
-    Uniform1f(specularMultiplierLocation, data.specularMultiplier);
+    std::string isUsedLocation = structLocation + ".phongParams";
+    Uniform4f(isUsedLocation, data.phongParams);
+     
 }
 
 #endif

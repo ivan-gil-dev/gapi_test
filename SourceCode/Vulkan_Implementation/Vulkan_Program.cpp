@@ -125,17 +125,17 @@ void Program::CreateDescriptorPool(ProgramType programType) {
 
         std::vector<VkDescriptorPoolSize> poolSizes;
         VkDescriptorPoolSize mvp{};
-        mvp.descriptorCount = 1000;
+        mvp.descriptorCount = 1;
         mvp.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes.push_back(mvp);
 
         VkDescriptorPoolSize pointLightData{};
-        pointLightData.descriptorCount = 1000;
+        pointLightData.descriptorCount = 32;
         pointLightData.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes.push_back(pointLightData);
 
         VkDescriptorPoolSize cameraPos{};
-        cameraPos.descriptorCount = 1000;
+        cameraPos.descriptorCount = 1;
         cameraPos.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes.push_back(cameraPos);
 
@@ -143,18 +143,18 @@ void Program::CreateDescriptorPool(ProgramType programType) {
         createInfo.pPoolSizes = poolSizes.data();
         createInfo.poolSizeCount = (uint32_t)poolSizes.size();
         createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        createInfo.maxSets = (uint32_t)10000;
+        createInfo.maxSets = (uint32_t)1000;
         createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
         if (vkCreateDescriptorPool(externDevice, &createInfo, nullptr, &m_descriptorPool_uniforms) != VK_SUCCESS) throw ERR_DESCRIPTOR_POOL_CREATION;
         poolSizes.clear();
 
         VkDescriptorPoolSize dTexture{};
-        dTexture.descriptorCount = 1000;
+        dTexture.descriptorCount = 1;
         dTexture.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         poolSizes.push_back(dTexture);
 
         VkDescriptorPoolSize sTexture{};
-        sTexture.descriptorCount = 1000;
+        sTexture.descriptorCount = 1;
         sTexture.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         poolSizes.push_back(sTexture);
 
@@ -162,7 +162,7 @@ void Program::CreateDescriptorPool(ProgramType programType) {
         createInfo.pPoolSizes = poolSizes.data();
         createInfo.poolSizeCount = (uint32_t)poolSizes.size();
         createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        createInfo.maxSets = (uint32_t)10000;
+        createInfo.maxSets = (uint32_t)1000;
         createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
         if (vkCreateDescriptorPool(externDevice, &createInfo, nullptr, &m_descriptorPool_samplers) != VK_SUCCESS) throw ERR_DESCRIPTOR_POOL_CREATION;
     }
@@ -171,12 +171,12 @@ void Program::CreateDescriptorPool(ProgramType programType) {
     {
         std::vector<VkDescriptorPoolSize> poolSizes;
         VkDescriptorPoolSize color{};
-        color.descriptorCount = 1000;
+        color.descriptorCount = 1;
         color.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
         poolSizes.push_back(color);
 
         VkDescriptorPoolSize image{};
-        image.descriptorCount = 1000;
+        image.descriptorCount = 1;
         image.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         poolSizes.push_back(image);
 
@@ -185,7 +185,7 @@ void Program::CreateDescriptorPool(ProgramType programType) {
         createInfo.pPoolSizes = poolSizes.data();
         createInfo.poolSizeCount = (uint32_t)poolSizes.size();
         createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        createInfo.maxSets = (uint32_t)1000;
+        createInfo.maxSets = (uint32_t)100;
         createInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
         if (vkCreateDescriptorPool(externDevice, &createInfo, nullptr, &m_descriptorPool_uniforms) != VK_SUCCESS) throw ERR_DESCRIPTOR_POOL_CREATION;
     }
@@ -207,7 +207,7 @@ void Program::CreateRenderpass(VkFormat SwapchainFormat) {
     depthAttachment.format = externDepthFormat;
     depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
     depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
     depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
     depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -216,10 +216,10 @@ void Program::CreateRenderpass(VkFormat SwapchainFormat) {
     VkSubpassDependency dependency{};
     dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
     dependency.dstSubpass = 0;
-    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
     dependency.srcAccessMask = 0;
-    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
     VkAttachmentReference colorAttachmentReference{};
     colorAttachmentReference.attachment = (uint32_t)0;
@@ -353,8 +353,8 @@ Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, i
     VkViewport viewport = {};
     viewport.x = 0;
     viewport.y = height;
-    viewport.height = -(float)height;
-    viewport.width = (float)width;
+    viewport.height = -height;
+    viewport.width = width;
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
@@ -417,18 +417,18 @@ Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, i
     m_pipelineCreateInfo.sType = { VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
     
 
-   /* if (ENABLE_DYNAMIC_VIEWPORT) {
-        VkDynamicState dynamicStates[] = {
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR
-        };
 
-        VkPipelineDynamicStateCreateInfo dynamicStateInfo = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
-        dynamicStateInfo.dynamicStateCount = 2;
-        dynamicStateInfo.pDynamicStates = dynamicStates;
+    //VkDynamicState dynamicStates[] = {
+    //VK_DYNAMIC_STATE_VIEWPORT/*,
+    //VK_DYNAMIC_STATE_SCISSOR*/
+    //};
 
-        CreateInfo.pDynamicState = &dynamicStateInfo;
-    }*/
+    //VkPipelineDynamicStateCreateInfo dynamicStateInfo = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
+    //dynamicStateInfo.dynamicStateCount = /*2*/1;
+    //dynamicStateInfo.pDynamicStates = dynamicStates;
+
+   /* m_pipelineCreateInfo.pDynamicState = &dynamicStateInfo;*/
+    
 
     m_pipelineCreateInfo.pViewportState = &viewportStateCreateInfo;
     m_pipelineCreateInfo.pColorBlendState = &colorBlendInfo;
@@ -448,7 +448,6 @@ Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, i
     vkDestroyShaderModule(externDevice, vertexModule, nullptr);
     vkDestroyShaderModule(externDevice, fragmentModule, nullptr);
 }
-
 
 void Program::UseProgram(){}
 Program::~Program(){

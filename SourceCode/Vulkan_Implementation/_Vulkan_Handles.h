@@ -20,6 +20,7 @@ extern VkQueue externMainQueue;
 
 extern unsigned int externMainQueueIndex;
 extern int extern_MAX_FRAMES;
+extern int extern_Swapchain_Image_View_Count;
 
 
 extern VkDescriptorPool externDescriptorPool_uniforms;
