@@ -55,13 +55,18 @@ SceneContainer* CreateScene() {
     pLight->p_m_transformMatrices->Translate(glm::vec3(0, 100.f, 0));
     //pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
     pLight->GetPointLightData()->phongParams.x = 0.2;
-    pLight->GetPointLightData()->phongParams.y = 500.0;
+    pLight->GetPointLightData()->phongParams.y = 700.0;
     pLight->GetPointLightData()->phongParams.z = 0.5;
 
-    float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-    float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
-    float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    //float r = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    //float g = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+    //float b = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
 
+
+    float r = 0.7;
+    float g = 0.7;
+    float b = 0.7;
+    
     pLight->GetPointLightData()->color = glm::vec3(
         r, g, b
     );

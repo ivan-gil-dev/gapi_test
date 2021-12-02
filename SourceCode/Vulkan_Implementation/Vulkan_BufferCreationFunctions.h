@@ -71,7 +71,7 @@ class UniformBuffer{
 public:
     void CreateUniformBuffer(VkPhysicalDevice physicalDevice, VkDevice device, size_t size) {
         Buf_Func_CreateBuffer(physicalDevice, device, size, m_Buffer, m_Memory, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT /*| VK_MEMORY_PROPERTY_HOST_COHERENT_BIT*/);
     }
 
     void UpdateBuffer(VkDevice device, void* data, VkDeviceSize offset, VkDeviceSize range) {
@@ -84,7 +84,7 @@ public:
     VkDescriptorBufferInfo GetDescriptor(VkDeviceSize offset, VkDeviceSize range) {
         // Calculate required alignment based on minimum device offset alignment
         size_t minUboAlignment = externDeviceProperties.limits.minUniformBufferOffsetAlignment;
-        std::cout << offset << std::endl;
+
         if (minUboAlignment > 0) {
             offset = (offset + minUboAlignment - 1) & ~(minUboAlignment - 1);
         }

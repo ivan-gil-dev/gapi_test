@@ -233,8 +233,8 @@ class Swapchain {
             if (surfaceFormats[i].format == VK_FORMAT_B8G8R8A8_SRGB &&
                 surfaceFormats[i].colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
                 CreateInfo.imageColorSpace = surfaceFormats[i].colorSpace;
-                CreateInfo.imageFormat = VK_FORMAT_R8G8B8A8_UNORM;
-                m_swapchainImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
+                CreateInfo.imageFormat = VK_FORMAT_B8G8R8A8_SRGB;
+                m_swapchainImageFormat = VK_FORMAT_B8G8R8A8_SRGB;
                 break;
             }
         }
@@ -657,7 +657,11 @@ void CoreClass::DrawFrame(int currentFrame, VkCommandBuffer commandBuffer) {
 void CoreClass::Play(SceneContainer* sceneContainer) {
     m_sceneContainer = sceneContainer;
 
-   
+    RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), 0, drawCommandBuffers);
+    RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), 1, drawCommandBuffers);
+    RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), 2, drawCommandBuffers);
+
+
     while (!glfwWindowShouldClose(p_m_window))//Пока окно не закрыто
     {
         //Обработать оконные события
@@ -692,7 +696,7 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
             UpdateUniformsForObject(i);
         }
 
-        RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), currentFrame, drawCommandBuffers);
+        //RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), currentFrame, drawCommandBuffers);
         DrawFrame(currentFrame, drawCommandBuffers[currentFrame].Get());
         currentFrame = (currentFrame + 1) % extern_MAX_FRAMES;
         

@@ -635,6 +635,7 @@ void Mesh::Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLa
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
         VkDescriptorSet Sets[] = { uniformDescriptorSets[0], materialDescriptorSets[material_ID[i]][0] };
+
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Layout,
             0, 2, Sets, 0, nullptr);
 
