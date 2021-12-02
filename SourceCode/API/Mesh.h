@@ -32,7 +32,7 @@ class Mesh {
 
     void LoadMaterials(const aiScene* scene, std::string path);
 
-
+private:
     #ifdef USE_VK
         void InitUniformBuffers();
         void ClearUniformBuffers();
@@ -40,10 +40,15 @@ class Mesh {
         void InitDescriptorSets();
         void ClearDescriptorSets();
 
-        std::map<int, unsigned int> indexArrayOffsets;
+        std::map<int, VkDeviceSize> m_UniformOffsets;
+        std::map<int, UniformBuffer> m_UniformBuffer;
 
         std::map<int, std::vector<VkDescriptorSet>> materialDescriptorSets;
         std::vector<VkDescriptorSet> uniformDescriptorSets;
+
+        std::map<int, unsigned int> firstIndexPerMesh;
+        std::map<int, unsigned int> indexesPerMesh;
+        std::map<int, unsigned int> vertexBufferOffsets;
     #endif
 public:
 
@@ -57,9 +62,8 @@ public:
     #endif
 
     #ifdef USE_VK
-        UniformBuffer m_MVP_Uniform;
-        UniformBuffer m_pointLightData_Uniform[MAX_POINTLIGHT_COUNT];
-        UniformBuffer m_CameraPos_Uniform;
+        
+        void UpdateUniforms(int currentFrame, DataTypes::MVP &mvp, glm::vec3 &camPos, std::vector<PointLightData> &pointLightData);
 
         void Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLayout Layout, int imageIndex);
     #endif

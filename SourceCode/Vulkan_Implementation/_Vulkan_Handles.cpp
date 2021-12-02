@@ -14,7 +14,7 @@ VkCommandPool externCommandPool;
 int extern_MAX_FRAMES;
 
 int extern_Swapchain_Image_View_Count;
-
+VkPhysicalDeviceProperties externDeviceProperties;
 VkDescriptorPool externDescriptorPool_uniforms;
 VkDescriptorSetLayout externSetLayout_uniforms;
 VkDescriptorPool externDescriptorPool_samplers;

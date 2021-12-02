@@ -87,6 +87,8 @@ class Device {
     VkDevice m_device;
     VkQueueIndices m_queueIndices;
     VkQueue m_graphicsQueue;
+    VkPhysicalDeviceProperties m_properties;
+
     void PickPhysicalDevice(VkInstance instance) {
         uint32_t deviceCount;
         vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -97,8 +99,9 @@ class Device {
         for (size_t i = 0; i < deviceCount; i++) {
             VkPhysicalDeviceProperties deviceProperties;
             vkGetPhysicalDeviceProperties(devices[i], &deviceProperties);
-
+            
             if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+                m_properties = deviceProperties;
                 std::cout << "Device :" << deviceProperties.deviceName << std::endl;
                 m_physicalDevice = devices[i];
                 break;
@@ -167,6 +170,10 @@ class Device {
     }
     VkQueueIndices GetQueueIndices() {
         return m_queueIndices;
+    }
+
+    VkPhysicalDeviceProperties GetPhysicalDeviceProperties() {
+        return m_properties;
     }
     
 }*localDevice;
@@ -436,6 +443,8 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
     localInstance = new Instance(); 
     localDevice = new Device(localInstance->GetInstance());
     localSurface = new Surface(localInstance->GetInstance(), p_m_window);
+    
+    externDeviceProperties = localDevice->GetPhysicalDeviceProperties();
 
     localSwapchain = new Swapchain(
         localSurface->GetSurface(),
@@ -501,6 +510,8 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
 
 
     localSyncObjects = new SyncObjects(localDevice->GetDevice(), extern_MAX_FRAMES);
+
+    
 }
 
 CoreClass::~CoreClass() {
@@ -544,8 +555,7 @@ CoreClass::~CoreClass() {
 }
 
 void CoreClass::RecordCommandBuffers(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers, int currentFrame, std::vector<CommandBuffer> &drawCommandBuffers) {
-        
-       
+
         VkRenderPassBeginInfo renderPassBeginInfo{};
         renderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassBeginInfo.renderPass = mainRenderPass;
@@ -661,29 +671,20 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
 
         /*auto updateObjects = std::async(std::launch::async,
             [this]() {
-                for (size_t i = 0; i < m_sceneContainer->GetObjects()->size(); i++)
-                {
-                    m_sceneContainer->GetObjects()->at(i)->Update(DeltaTime);
-                    UpdateUniformsForObject(i);
-                }
-
-                RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), currentFrame, drawCommandBuffers);
+                
             }
         );  
         updateObjects.wait();*/
 
 
-        /*auto drawFirstFrame = std::async(std::launch::async,
+       /* auto drawFirstFrame = std::async(std::launch::async,
             [this]() {
                 DrawFrame(currentFrame, drawCommandBuffers[currentFrame].Get());
                 currentFrame = (currentFrame + 1) % extern_MAX_FRAMES;
             }
-        );
-        drawFirstFrame.wait();*/
+        );*/
+        /*drawFirstFrame.wait();*/
 
-
-    
-        
 
         for (size_t i = 0; i < m_sceneContainer->GetObjects()->size(); i++)
         {
@@ -692,9 +693,20 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
         }
 
         RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), currentFrame, drawCommandBuffers);
-
         DrawFrame(currentFrame, drawCommandBuffers[currentFrame].Get());
         currentFrame = (currentFrame + 1) % extern_MAX_FRAMES;
+        
+
+        //for (size_t i = 0; i < m_sceneContainer->GetObjects()->size(); i++)
+        //{
+        //    m_sceneContainer->GetObjects()->at(i)->Update(DeltaTime);
+        //    UpdateUniformsForObject(i);
+        //}
+
+        //RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), currentFrame, drawCommandBuffers);
+
+        //DrawFrame(currentFrame, drawCommandBuffers[currentFrame].Get());
+        //currentFrame = (currentFrame + 1) % extern_MAX_FRAMES;
 
         
         auto endTime = Timer.now();//Получаем время конца итерации цикла
@@ -708,29 +720,33 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
 
 void CoreClass::UpdateUniformsForObject(int i) {
     glm::vec3 nullVector = glm::vec3(0.0f);
-    //Вычислить произведения матрицы переноса, вращения и масштабирования
-    DataTypes::MVP mvp;
-    mvp.model = m_sceneContainer->GetObjects()->at(i)->p_m_transformMatrices->GetModelMatrix();
-    mvp.view = m_camera.GetViewMatrix();
-    mvp.projection = m_camera.GetProjectionMatrix();
 
-    glm::vec3 cameraPos = m_camera.GetPos();
+    if (m_sceneContainer->GetObjects()->at(i)->p_m_mesh != nullptr) {
+        //Вычислить произведения матрицы переноса, вращения и масштабирования
+        DataTypes::MVP mvp;
+        mvp.model = m_sceneContainer->GetObjects()->at(i)->p_m_transformMatrices->GetModelMatrix();
+        mvp.view = m_camera.GetViewMatrix();
+        mvp.projection = m_camera.GetProjectionMatrix();
+
+        glm::vec3 cameraPos = m_camera.GetPos();
     
-    m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_MVP_Uniform.UpdateBuffer(localDevice->GetDevice(), &mvp);
-    m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_CameraPos_Uniform.UpdateBuffer(localDevice->GetDevice(), &cameraPos);
-
-
-    for (size_t k = 0; k < MAX_POINTLIGHT_COUNT; k++)
-    {
-        if (k < m_sceneContainer->GetPointLights()->size()) {
-            DataTypes::PointLightData data = *m_sceneContainer->GetPointLights()->at(k)->GetPointLightData();
-            m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_pointLightData_Uniform[k].UpdateBuffer(localDevice->GetDevice(), &data);
+        std::vector<PointLightData> pointLightData;
+        for (size_t k = 0; k < MAX_POINTLIGHT_COUNT; k++)
+        {
+            if (k < m_sceneContainer->GetPointLights()->size()) {
+                DataTypes::PointLightData data = *m_sceneContainer->GetPointLights()->at(k)->GetPointLightData();
+                pointLightData.push_back(data);
+            }
+            else {
+                DataTypes::PointLightData data{};
+                pointLightData.push_back(data);
+            }
         }
-        else {
-            DataTypes::PointLightData data{};
-            m_sceneContainer->GetObjects()->at(i)->p_m_mesh->m_pointLightData_Uniform[k].UpdateBuffer(localDevice->GetDevice(), &data);
-        }
+
+        m_sceneContainer->GetObjects()->at(i)->p_m_mesh->UpdateUniforms(currentFrame, mvp, cameraPos, pointLightData);
+
     }
+    
 }
 
 

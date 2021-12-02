@@ -53,7 +53,7 @@ SceneContainer* CreateScene() {
 
     PointLight* pLight = new PointLight;
     pLight->p_m_transformMatrices->Translate(glm::vec3(0, 100.f, 0));
-    pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
+    //pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
     pLight->GetPointLightData()->phongParams.x = 0.2;
     pLight->GetPointLightData()->phongParams.y = 500.0;
     pLight->GetPointLightData()->phongParams.z = 0.5;
@@ -76,7 +76,7 @@ SceneContainer* CreateScene() {
     //        pLight = new MovingLight;
     //    pLight->speed = 30;
     //    pLight->p_m_transformMatrices->Translate(glm::vec3(i * 7, 2.f, i * 7));
-    //    pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
+    //    //pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
     //    pLight->GetPointLightData()->phongParams.x = 0.2;
     //    pLight->GetPointLightData()->phongParams.y = 5.0;
     //    pLight->GetPointLightData()->phongParams.z = 0.5;
@@ -92,6 +92,8 @@ SceneContainer* CreateScene() {
 
     //    container->AddPointLightObject(pLight);
     //}
+
+
     return container;
 }
 
@@ -134,7 +136,7 @@ int main() {
 
     try{
         CoreClass app(properties);
-        app.Play(TestKettle());
+        app.Play(CreateScene());
     }
     catch (const int& e){
         ShowErrorMessage(e);

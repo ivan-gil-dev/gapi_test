@@ -373,7 +373,7 @@ Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, i
     rasterizationInfo.sType = { VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
     rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
     rasterizationInfo.depthBiasEnable = VK_FALSE;
-    rasterizationInfo.cullMode = VK_CULL_MODE_NONE;//Не отрисовывать полигоны на заднем плане//
+    rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;//Не отрисовывать полигоны на заднем плане//
     rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;//Заполнение цветом треугольников//
     rasterizationInfo.lineWidth = 1.0f;
     rasterizationInfo.depthClampEnable = VK_FALSE;

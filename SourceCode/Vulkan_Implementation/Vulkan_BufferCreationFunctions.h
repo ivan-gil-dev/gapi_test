@@ -36,6 +36,7 @@ inline void Buf_Func_CreateBuffer(VkPhysicalDevice physicalDevice, VkDevice devi
     memAllocInfo.memoryTypeIndex = Buf_Func_FindSuitableMemoryType(physicalDevice, memRequirements.memoryTypeBits, propertyFlags);
 
     if (vkAllocateMemory(device, &memAllocInfo, nullptr, &deviceMemory) != VK_SUCCESS) throw ERR_MEMORY_ALLOCATION;   
+    
     vkBindBufferMemory(device, buffer, deviceMemory, 0);
 }
 
@@ -66,27 +67,35 @@ inline void Buf_Func_CopyBuffer(VkDevice device, VkCommandPool commandPool, VkQu
 class UniformBuffer{
     VkBuffer	    m_Buffer;
     VkDeviceMemory  m_Memory;
-    VkDescriptorBufferInfo m_Descriptor;
+    
 public:
     void CreateUniformBuffer(VkPhysicalDevice physicalDevice, VkDevice device, size_t size) {
         Buf_Func_CreateBuffer(physicalDevice, device, size, m_Buffer, m_Memory, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-        m_Descriptor.buffer = m_Buffer;
-        m_Descriptor.offset = 0;
-        m_Descriptor.range = size;
     }
 
-    void UpdateBuffer(VkDevice device, void* data) {
+    void UpdateBuffer(VkDevice device, void* data, VkDeviceSize offset, VkDeviceSize range) {
         void *pointer;
-
-        vkMapMemory(device, m_Memory, 0, m_Descriptor.range, 0, &pointer);
-        memcpy(pointer, data, m_Descriptor.range);
+        vkMapMemory(device, m_Memory, offset, range, 0, &pointer);
+        memcpy(pointer, data, range);
         vkUnmapMemory(device, m_Memory);
     }
 
-    VkDescriptorBufferInfo* GetDescriptor() {
-        return &m_Descriptor;
+    VkDescriptorBufferInfo GetDescriptor(VkDeviceSize offset, VkDeviceSize range) {
+        // Calculate required alignment based on minimum device offset alignment
+        size_t minUboAlignment = externDeviceProperties.limits.minUniformBufferOffsetAlignment;
+        std::cout << offset << std::endl;
+        if (minUboAlignment > 0) {
+            offset = (offset + minUboAlignment - 1) & ~(minUboAlignment - 1);
+        }
+
+        
+
+        VkDescriptorBufferInfo m_Descriptor;
+        m_Descriptor.buffer = m_Buffer;
+        m_Descriptor.offset = offset;
+        m_Descriptor.range = range;
+        return m_Descriptor;
     }
 
     void Destroy(VkDevice device) {

@@ -1,11 +1,29 @@
 #include "../API/Mesh.h"
 #include "_Vulkan_Handles.h"
 #ifdef USE_VK
+void Mesh::UpdateUniforms(int currentFrame, DataTypes::MVP& mvp, glm::vec3& camPos, std::vector<PointLightData>& pointLightData) {
+    int pointLightIndex = 0;
+    for (size_t i = 0; i < m_UniformOffsets.size(); i++)
+    {
+        if (i == 0)
+            m_UniformBuffer[currentFrame].UpdateBuffer(externDevice, &mvp, m_UniformOffsets[i], sizeof(MVP));
+        
 
+        if (i == 1) 
+            m_UniformBuffer[currentFrame].UpdateBuffer(externDevice, &camPos, m_UniformOffsets[i], sizeof(glm::vec3));
+        
+        
+        if (i > 1) {
+            PointLightData data = pointLightData[pointLightIndex];
+            if(pointLightIndex < MAX_POINTLIGHT_COUNT)
+                m_UniformBuffer[currentFrame].UpdateBuffer(externDevice, &data, m_UniformOffsets[i], sizeof(PointLightData));
+
+            pointLightIndex++;
+        }
+    }
+}
 
 void Mesh::InitDescriptorSets() {
-    
-    
     {
         std::vector<VkDescriptorSetLayout> setLayouts(extern_Swapchain_Image_View_Count, externSetLayout_uniforms);
 
@@ -27,7 +45,9 @@ void Mesh::InitDescriptorSets() {
     
     for (size_t i = 0; i < uniformDescriptorSets.size(); i++)
     {
+        int bufferOffset = 0;
         std::vector<VkWriteDescriptorSet> writeDescriptorSets;
+        std::map<int, VkDescriptorBufferInfo> bufferDescriptor;
 
         VkWriteDescriptorSet mvpDescriptorSet{};
         mvpDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -36,21 +56,11 @@ void Mesh::InitDescriptorSets() {
         mvpDescriptorSet.dstSet = uniformDescriptorSets[i];
         mvpDescriptorSet.dstBinding = 0;
         mvpDescriptorSet.dstArrayElement = 0;
-        mvpDescriptorSet.pBufferInfo = m_MVP_Uniform.GetDescriptor();
-        writeDescriptorSets.push_back(mvpDescriptorSet);
 
-        for (size_t k = 0; k < MAX_POINTLIGHT_COUNT; k++)
-        {
-            VkWriteDescriptorSet pointLightDataDescriptorSet{};
-            pointLightDataDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-            pointLightDataDescriptorSet.descriptorCount = 1;
-            pointLightDataDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            pointLightDataDescriptorSet.dstSet = uniformDescriptorSets[i];
-            pointLightDataDescriptorSet.dstBinding = 1;
-            pointLightDataDescriptorSet.dstArrayElement = k;
-            pointLightDataDescriptorSet.pBufferInfo = m_pointLightData_Uniform[k].GetDescriptor();
-            writeDescriptorSets.push_back(pointLightDataDescriptorSet);
-        }
+        bufferDescriptor[0] = m_UniformBuffer[i].GetDescriptor(bufferOffset, sizeof(MVP));
+        bufferOffset = bufferDescriptor[0].offset + bufferDescriptor[0].range;
+        mvpDescriptorSet.pBufferInfo = &bufferDescriptor[0];
+        writeDescriptorSets.push_back(mvpDescriptorSet);
 
         VkWriteDescriptorSet cameraPosDescriptorSet{};
         cameraPosDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -59,11 +69,40 @@ void Mesh::InitDescriptorSets() {
         cameraPosDescriptorSet.dstSet = uniformDescriptorSets[i];
         cameraPosDescriptorSet.dstBinding = 4;
         cameraPosDescriptorSet.dstArrayElement = 0;
-        cameraPosDescriptorSet.pBufferInfo = m_CameraPos_Uniform.GetDescriptor();
+
+        
+        bufferDescriptor[1] = m_UniformBuffer[i].GetDescriptor(bufferOffset, sizeof(glm::vec3));
+        bufferOffset = bufferDescriptor[1].offset + bufferDescriptor[1].range;;
+        cameraPosDescriptorSet.pBufferInfo = &bufferDescriptor[1];
         writeDescriptorSets.push_back(cameraPosDescriptorSet);
+        
+        
+        for (size_t k = 0; k < MAX_POINTLIGHT_COUNT; k++)
+        {
+           
+            bufferDescriptor[k + 2] = m_UniformBuffer[i].GetDescriptor(bufferOffset, sizeof(PointLightData));
+            bufferOffset = bufferDescriptor[k + 2].range + bufferDescriptor[k + 2].offset;
+            VkWriteDescriptorSet pointLightDataDescriptorSet{};
+            pointLightDataDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            pointLightDataDescriptorSet.descriptorCount = 1;
+            pointLightDataDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            pointLightDataDescriptorSet.dstSet = uniformDescriptorSets[i];
+            pointLightDataDescriptorSet.dstBinding = 1;
+            pointLightDataDescriptorSet.dstArrayElement = k;
+            pointLightDataDescriptorSet.pBufferInfo = &bufferDescriptor[k + 2];
+            writeDescriptorSets.push_back(pointLightDataDescriptorSet);
+
+        }
+
+            for (size_t k = 0; k < writeDescriptorSets.size(); k++)         
+                if (!m_UniformOffsets.count(k))
+                    m_UniformOffsets[k] = (writeDescriptorSets[k].pBufferInfo->offset);
+          
+        
 
         vkUpdateDescriptorSets(externDevice, (uint32_t)writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
         writeDescriptorSets.resize(0);
+        bufferDescriptor.clear();
     }
 
     std::vector<VkDescriptorSetLayout> setLayouts(extern_Swapchain_Image_View_Count, externSetLayout_samplers);
@@ -139,19 +178,25 @@ void Mesh::ClearDescriptorSets() {
 }
 
 void Mesh::InitUniformBuffers() {
-    m_MVP_Uniform.CreateUniformBuffer(externPhysicalDevice, externDevice, sizeof(DataTypes::MVP));
-    m_CameraPos_Uniform.CreateUniformBuffer(externPhysicalDevice, externDevice, 3 * sizeof(float));
-    for (size_t i = 0; i < MAX_POINTLIGHT_COUNT; i++){
-        m_pointLightData_Uniform[i].CreateUniformBuffer(externPhysicalDevice, externDevice, sizeof(DataTypes::PointLightData));
+    for (size_t i = 0; i < extern_MAX_FRAMES; i++)
+    {
+        m_UniformBuffer[i].CreateUniformBuffer(externPhysicalDevice, externDevice, 
+        sizeof(DataTypes::MVP) + 
+        sizeof(glm::vec3) + 
+        sizeof(PointLightData) * MAX_POINTLIGHT_COUNT * 3);
     }
+
+    
 }
 
 void Mesh::ClearUniformBuffers() {
-    m_MVP_Uniform.Destroy(externDevice);
-    m_CameraPos_Uniform.Destroy(externDevice);
-    for (size_t i = 0; i < MAX_POINTLIGHT_COUNT; i++) {
-        m_pointLightData_Uniform[i].Destroy(externDevice);
+    std::map<int, UniformBuffer>::iterator it;
+
+    for (it = m_UniformBuffer.begin(); it != m_UniformBuffer.end(); it++)
+    {
+        it->second.Destroy(externDevice);
     }
+   
 }
 
 void Mesh::LoadMaterials(const aiScene* scene, std::string path) {
@@ -324,6 +369,10 @@ Mesh::Mesh(ShapeType shapeType, std::string TexturePath) {
 
     material_ID.push_back(0);
 
+    firstIndexPerMesh[0] = 0;
+    indexesPerMesh[0] = indices.size();
+    vertexBufferOffsets[0] = 0;
+
     Texture* diffuseTexture = new Texture(TexturePath);
     dTextures[0] = (diffuseTexture);
 
@@ -415,6 +464,10 @@ Mesh::Mesh(ShapeType shapeType, glm::vec3 color) {
 
     material_ID.push_back(0);
 
+    firstIndexPerMesh[0] = 0;
+    indexesPerMesh[0] = indices.size();
+    vertexBufferOffsets[0] = 0;
+
     Texture* diffuseTexture = new Texture(color);
     dTextures[0] = (diffuseTexture);
 
@@ -427,17 +480,21 @@ Mesh::Mesh(ShapeType shapeType, glm::vec3 color) {
 Mesh::Mesh(std::string path) {
     InitUniformBuffers();
 
-
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         std::cout << "Error assimp: " << importer.GetErrorString() << std::endl;
 
-    for (size_t i = 0; i < scene->mNumMeshes; i++) {
-        std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
 
+    for (size_t i = 0; i < scene->mNumMeshes; i++) {
+        firstIndexPerMesh[i] = 0;
+        indexesPerMesh[i] = 0;
+        vertexBufferOffsets[i] = 0;
+
+        
         for (size_t j = 0; j < scene->mMeshes[i]->mNumVertices; j++) {
 
             Vertex v;
@@ -460,20 +517,30 @@ Mesh::Mesh(std::string path) {
                 v.UV.x = scene->mMeshes[i]->mTextureCoords[0][j].x;
                 v.UV.y = scene->mMeshes[i]->mTextureCoords[0][j].y;
             }
-
+            
             vertices.push_back(v);
         }
 
-
-        for (size_t k = 0; k < scene->mMeshes[i]->mNumFaces; k++)
-            for (size_t z = 0; z < scene->mMeshes[i]->mFaces[k].mNumIndices; z++)
+        for (size_t k = 0; k < scene->mMeshes[i]->mNumFaces; k++) {
+            indexesPerMesh[i] += scene->mMeshes[i]->mFaces[k].mNumIndices;
+            for (size_t z = 0; z < scene->mMeshes[i]->mFaces[k].mNumIndices; z++) 
                 indices.push_back(scene->mMeshes[i]->mFaces[k].mIndices[z]);
+        }
+            
+        if (i != 0)
+        {
+            firstIndexPerMesh[i] += indexesPerMesh[i-1];
+            firstIndexPerMesh[i] += firstIndexPerMesh[i-1];
 
-        VertexArray* vertexArray = new VertexArray(vertices, indices);
-        vertexArrays.push_back(vertexArray);
-
+            vertexBufferOffsets[i] += scene->mMeshes[i-1]->mNumVertices * sizeof(DataTypes::Vertex);
+            vertexBufferOffsets[i] += vertexBufferOffsets[i-1];
+        }
+                
         material_ID.push_back(scene->mMeshes[i]->mMaterialIndex);
     }
+    
+    VertexArray* vertexArray = new VertexArray(vertices, indices);
+    vertexArrays.push_back(vertexArray);
 
     LoadMaterials(scene, path);
 
@@ -489,9 +556,12 @@ Mesh::Mesh(std::string path, glm::vec3 color) {
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         std::cout << "Error assimp: " << importer.GetErrorString() << std::endl;
 
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
     for (size_t i = 0; i < scene->mNumMeshes; i++) {
-        std::vector<Vertex> vertices;
-        std::vector<unsigned int> indices;
+        firstIndexPerMesh[i] = 0;
+        indexesPerMesh[i] = 0;
+        vertexBufferOffsets[i] = 0;
 
         for (size_t j = 0; j < scene->mMeshes[i]->mNumVertices; j++) {
 
@@ -516,12 +586,14 @@ Mesh::Mesh(std::string path, glm::vec3 color) {
         }
 
 
-        for (size_t k = 0; k < scene->mMeshes[i]->mNumFaces; k++)
+        for (size_t k = 0; k < scene->mMeshes[i]->mNumFaces; k++) {
+            indexesPerMesh[i] += scene->mMeshes[i]->mFaces[k].mNumIndices;
             for (size_t z = 0; z < scene->mMeshes[i]->mFaces[k].mNumIndices; z++)
                 indices.push_back(scene->mMeshes[i]->mFaces[k].mIndices[z]);
+        }
+            
 
-        VertexArray* vertexArray = new VertexArray(vertices, indices);
-        vertexArrays.push_back(vertexArray);
+       
 
         material_ID.push_back(scene->mMeshes[i]->mMaterialIndex);
 
@@ -530,7 +602,19 @@ Mesh::Mesh(std::string path, glm::vec3 color) {
 
         Texture* specularTexture = new Texture(color);
         sTextures[scene->mMeshes[i]->mMaterialIndex] = (specularTexture);
+
+        if (i != 0)
+        {
+            firstIndexPerMesh[i] += indexesPerMesh[i - 1];
+            firstIndexPerMesh[i] += firstIndexPerMesh[i - 1];
+
+            vertexBufferOffsets[i] += scene->mMeshes[i - 1]->mNumVertices * sizeof(DataTypes::Vertex);
+            vertexBufferOffsets[i] += vertexBufferOffsets[i - 1];
+        }
     }
+
+    VertexArray* vertexArray = new VertexArray(vertices, indices);
+    vertexArrays.push_back(vertexArray);
 
     InitDescriptorSets();
 }
@@ -543,30 +627,29 @@ void Mesh::Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLa
         pipeline
     );
   
-    
     for (size_t i = 0; i < material_ID.size(); i++)
     {
-        VkBuffer buffers[] = { vertexArrays[i]->GetVertexBuffer() };
-        VkDeviceSize offsets[] = { 0 };
+        VkBuffer buffers[] = { vertexArrays[0]->GetVertexBuffer() };
+        VkDeviceSize offsets[] = { vertexBufferOffsets[i] };
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
-
 
         VkDescriptorSet Sets[] = { uniformDescriptorSets[0], materialDescriptorSets[material_ID[i]][0] };
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Layout,
             0, 2, Sets, 0, nullptr);
 
-         /*
-         DataTypes::PushConstants constants;
-         constants.diffuseMapId = Shapes[i].MatID;*/
+        VkBuffer indexBuffers[] = { vertexArrays[0]->GetIndexBuffer() };
+        VkDeviceSize indexOffsets[] = { 0 };
 
-        //vkCmdPushConstants(commandBuffer, renderer.graphicsPipelineForMesh.GetPipelineLayout(),
-        //    VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(constants), &constants);
+        vkCmdBindIndexBuffer(commandBuffer, indexBuffers[0], indexOffsets[0], VK_INDEX_TYPE_UINT32);
 
-        
-        vkCmdBindIndexBuffer(commandBuffer, vertexArrays[i]->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
-        vkCmdDrawIndexed(commandBuffer, (uint32_t)vertexArrays[i]->GetIndices().size(), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffer, (uint32_t)indexesPerMesh[i], 1, firstIndexPerMesh[i], 0, 0);
     }
+
+    
+
+
+    
 }
 
 Mesh::~Mesh() {
