@@ -1,4 +1,4 @@
-#include "../CoreClass.h"
+п»ї#include "../CoreClass.h"
 
 #ifdef USE_GL
 
@@ -22,6 +22,12 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
 
     glEnable(GL_DEPTH_TEST);
 
+    #ifdef USE_FACE_CULLING
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK); //РќРµ РѕС‚СЂРёСЃРѕРІС‹РІР°С‚СЊ РїРѕР»РёРіРѕРЅС‹ РЅР° Р·Р°РґРЅРµРј РїР»Р°РЅРµ//
+    #endif // USE_FACE_CULLING
+
+
 }
 
 CoreClass::~CoreClass() {
@@ -35,7 +41,7 @@ CoreClass::~CoreClass() {
 
 void CoreClass::UpdateUniformsForObject(int i) {
     glm::vec3 nullVector = glm::vec3(0.0f);
-    //Вычислить произведения матрицы переноса, вращения и масштабирования
+    //Р’С‹С‡РёСЃР»РёС‚СЊ РїСЂРѕРёР·РІРµРґРµРЅРёСЏ РјР°С‚СЂРёС†С‹ РїРµСЂРµРЅРѕСЃР°, РІСЂР°С‰РµРЅРёСЏ Рё РјР°СЃС€С‚Р°Р±РёСЂРѕРІР°РЅРёСЏ
     DataTypes::MVP mvp;
     mvp.model = m_sceneContainer->GetObjects()->at(i)->p_m_transformMatrices->GetModelMatrix();
     mvp.view = m_camera.GetViewMatrix();
@@ -68,18 +74,18 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
     p_m_program->Uniform1i("dTexture", 0);
     p_m_program->Uniform1i("sTexture", 1);
 
-    while (!glfwWindowShouldClose(p_m_window))//Пока окно не закрыто
+    while (!glfwWindowShouldClose(p_m_window))//РџРѕРєР° РѕРєРЅРѕ РЅРµ Р·Р°РєСЂС‹С‚Рѕ
     {
-        auto beginTime = Timer.now();//Получаем время начала итерации цикла
+        auto beginTime = Timer.now();//РџРѕР»СѓС‡Р°РµРј РІСЂРµРјСЏ РЅР°С‡Р°Р»Р° РёС‚РµСЂР°С†РёРё С†РёРєР»Р°
 
-        //Цвет обновления окна
+        //Р¦РІРµС‚ РѕР±РЅРѕРІР»РµРЅРёСЏ РѕРєРЅР°
         glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, 1.0f);
 
-        //Стереть все с экрана перед отрисовкой следующего кадра
-        //(Освободить буфер, хранящий цвет пикселей примитивов и освободить буфер глубины)
+        //РЎС‚РµСЂРµС‚СЊ РІСЃРµ СЃ СЌРєСЂР°РЅР° РїРµСЂРµРґ РѕС‚СЂРёСЃРѕРІРєРѕР№ СЃР»РµРґСѓСЋС‰РµРіРѕ РєР°РґСЂР°
+        //(РћСЃРІРѕР±РѕРґРёС‚СЊ Р±СѓС„РµСЂ, С…СЂР°РЅСЏС‰РёР№ С†РІРµС‚ РїРёРєСЃРµР»РµР№ РїСЂРёРјРёС‚РёРІРѕРІ Рё РѕСЃРІРѕР±РѕРґРёС‚СЊ Р±СѓС„РµСЂ РіР»СѓР±РёРЅС‹)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //Выставить значение состояния текущей используемой программы
+        //Р’С‹СЃС‚Р°РІРёС‚СЊ Р·РЅР°С‡РµРЅРёРµ СЃРѕСЃС‚РѕСЏРЅРёСЏ С‚РµРєСѓС‰РµР№ РёСЃРїРѕР»СЊР·СѓРµРјРѕР№ РїСЂРѕРіСЂР°РјРјС‹
         p_m_program->UseProgram();
         m_camera.Update(p_m_window, DeltaTime);
 
@@ -91,17 +97,17 @@ void CoreClass::Play(SceneContainer* sceneContainer) {
             m_sceneContainer->GetObjects()->at(i)->Draw();
         }
 
-        //Обработать оконные события
+        //РћР±СЂР°Р±РѕС‚Р°С‚СЊ РѕРєРѕРЅРЅС‹Рµ СЃРѕР±С‹С‚РёСЏ
         glfwPollEvents();
 
-        //Переключить буфер, из которого необходимо вывести изображение
+        //РџРµСЂРµРєР»СЋС‡РёС‚СЊ Р±СѓС„РµСЂ, РёР· РєРѕС‚РѕСЂРѕРіРѕ РЅРµРѕР±С…РѕРґРёРјРѕ РІС‹РІРµСЃС‚Рё РёР·РѕР±СЂР°Р¶РµРЅРёРµ
         glfwSwapBuffers(p_m_window);
 
-        auto endTime = Timer.now();//Получаем время конца итерации цикла
+        auto endTime = Timer.now();//РџРѕР»СѓС‡Р°РµРј РІСЂРµРјСЏ РєРѕРЅС†Р° РёС‚РµСЂР°С†РёРё С†РёРєР»Р°
 
-        //Вычисляем разность между временем начала и конца итерации цикла
+        //Р’С‹С‡РёСЃР»СЏРµРј СЂР°Р·РЅРѕСЃС‚СЊ РјРµР¶РґСѓ РІСЂРµРјРµРЅРµРј РЅР°С‡Р°Р»Р° Рё РєРѕРЅС†Р° РёС‚РµСЂР°С†РёРё С†РёРєР»Р°
         DeltaTime = (double)std::chrono::duration_cast<std::chrono::duration<float, std::milli>>(endTime - beginTime).count();
-        //Перевод в секунды
+        //РџРµСЂРµРІРѕРґ РІ СЃРµРєСѓРЅРґС‹
         DeltaTime /= 1000;
     }
 }

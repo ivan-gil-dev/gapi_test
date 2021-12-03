@@ -19,9 +19,9 @@ layout(set = 0, binding = 0) uniform Mvp{
 
 void main(){
 
-    
-    gl_Position = mvp.projection * mvp.view * mvp.model * vec4( v_Pos, 1.0f );
     f_FragPos = vec3( mvp.model * vec4( v_Pos, 1.0f ) );
+    gl_Position = mvp.projection * mvp.view * vec4(f_FragPos, 1.0f);
+    
 
 
     f_Color = v_Color;

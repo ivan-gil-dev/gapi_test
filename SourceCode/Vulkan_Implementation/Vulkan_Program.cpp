@@ -74,7 +74,7 @@ void Program::CreateDescriptorSetLayout(ProgramType programType) {
 
         VkDescriptorSetLayoutBinding dTextureBinding{};
         dTextureBinding.binding = 2;
-        dTextureBinding.descriptorCount = 1;
+        dTextureBinding.descriptorCount = MAX_TEXTURE_SLOTS;
         dTextureBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         dTextureBinding.pImmutableSamplers = nullptr;
         dTextureBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -82,7 +82,7 @@ void Program::CreateDescriptorSetLayout(ProgramType programType) {
 
         VkDescriptorSetLayoutBinding sTextureBinding{};
         sTextureBinding.binding = 3;
-        sTextureBinding.descriptorCount = 1;
+        sTextureBinding.descriptorCount = MAX_TEXTURE_SLOTS;
         sTextureBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         sTextureBinding.pImmutableSamplers = nullptr;
         sTextureBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -149,12 +149,12 @@ void Program::CreateDescriptorPool(ProgramType programType) {
         poolSizes.clear();
 
         VkDescriptorPoolSize dTexture{};
-        dTexture.descriptorCount = 1;
+        dTexture.descriptorCount = MAX_TEXTURE_SLOTS;
         dTexture.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         poolSizes.push_back(dTexture);
 
         VkDescriptorPoolSize sTexture{};
-        sTexture.descriptorCount = 1;
+        sTexture.descriptorCount = MAX_TEXTURE_SLOTS;
         sTexture.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         poolSizes.push_back(sTexture);
 
@@ -373,7 +373,14 @@ Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, i
     rasterizationInfo.sType = { VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
     rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
     rasterizationInfo.depthBiasEnable = VK_FALSE;
-    rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;//Не отрисовывать полигоны на заднем плане//
+    rasterizationInfo.cullMode = VK_CULL_MODE_NONE;//Не отрисовывать полигоны на заднем плане//
+
+
+    #ifdef USE_FACE_CULLING
+        rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;//Не отрисовывать полигоны на заднем плане//
+    #endif // USE_FACE_CULLING
+
+    
     rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;//Заполнение цветом треугольников//
     rasterizationInfo.lineWidth = 1.0f;
     rasterizationInfo.depthClampEnable = VK_FALSE;
@@ -401,14 +408,14 @@ Program::Program(ProgramType programType, VkFormat SwapchainFormat, int width, i
     PipelineLayoutInfo.setLayoutCount = 2;
 
 
-    //VkPushConstantRange pushConstantRange{};
-    ////свойства констант, которые можно передать без буферов//
-    //pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-    //pushConstantRange.size = sizeof(DataTypes::PushConstants);//Размер структуры с константами//
-    //pushConstantRange.offset = 0;
+    VkPushConstantRange pushConstantRange{};
+    //свойства констант, которые можно передать без буферов//
+    pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConstantRange.size = sizeof(DataTypes::PushConstants);//Размер структуры с константами//
+    pushConstantRange.offset = 0;
 
-    //PipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
-    //PipelineLayoutInfo.pushConstantRangeCount = uint32_t(1);
+    PipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+    PipelineLayoutInfo.pushConstantRangeCount = uint32_t(1);
 
     if (vkCreatePipelineLayout(externDevice, &PipelineLayoutInfo, nullptr, &m_pipelineLayout) != VK_SUCCESS)
         throw ERR_PIPELINE_LAYOUT_CREATION;

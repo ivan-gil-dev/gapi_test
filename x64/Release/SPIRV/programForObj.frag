@@ -1,7 +1,8 @@
  #version 440 core
 
     #define MAX_POINTLIGHT_COUNT 32
-  
+    #define MAX_TEXTURE_SLOTS 32
+
     layout(location = 0) in vec3 f_Color; 
     layout(location = 1) in vec2 f_UV;
     layout(location = 2) in vec3 f_Normal;
@@ -14,12 +15,19 @@
         vec4 phongParams;
     };
 
+    layout( push_constant ) uniform constants
+    {
+	    int material_ID;
+
+    } PushConstants;
+
+
     layout(set = 0, binding = 1) uniform PointLightData { 
         PointLightDataStruct data;
     }pointLights[MAX_POINTLIGHT_COUNT]; 
 
-    layout(set = 1, binding = 2) uniform sampler2D dTexture;
-    layout(set = 1, binding = 3) uniform sampler2D sTexture;
+    layout(set = 1, binding = 2) uniform sampler2D dTexture[MAX_TEXTURE_SLOTS];
+    layout(set = 1, binding = 3) uniform sampler2D sTexture[MAX_TEXTURE_SLOTS];
 
     layout(set = 0, binding = 4) uniform CamPosStruct {vec3 cameraPos;} camPosStruct;
 
@@ -27,8 +35,8 @@
 
     vec3 CalcPointLight(vec3 viewDir, PointLightDataStruct pointLightData){
 
-        vec4 albedoColor = texture( dTexture, f_UV );
-        vec3 specularColor = vec3(texture( sTexture, f_UV ));
+        vec4 albedoColor = texture( dTexture[PushConstants.material_ID], f_UV );
+        vec3 specularColor = vec3(texture( sTexture[PushConstants.material_ID], f_UV ));
 
         if(albedoColor.a<0.5){
             discard;

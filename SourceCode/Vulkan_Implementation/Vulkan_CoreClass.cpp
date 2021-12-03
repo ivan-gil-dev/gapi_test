@@ -54,28 +54,40 @@ class Instance {
         m_InstanceCreateInfo.enabledExtensionCount = extensions.size();
         m_InstanceCreateInfo.ppEnabledExtensionNames = extensions.data();
         m_InstanceCreateInfo.pApplicationInfo = &m_AppInfo;
-        m_InstanceCreateInfo.enabledLayerCount = (uint32_t)layers.size();
-        m_InstanceCreateInfo.ppEnabledLayerNames = layers.data();
+        m_InstanceCreateInfo.enabledLayerCount = 0;
 
-        m_MessengerInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        m_MessengerInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        m_MessengerInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
-            | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-            VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        m_MessengerInfo.pfnUserCallback = debugCallback;
-        m_MessengerInfo.pUserData = nullptr;
-        m_MessengerInfo.flags = 0;
+        #ifdef DEBUG
+            m_InstanceCreateInfo.enabledLayerCount = (uint32_t)layers.size();
+            m_InstanceCreateInfo.ppEnabledLayerNames = layers.data();
 
-        m_InstanceCreateInfo.pNext = &m_MessengerInfo;
+            m_MessengerInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+            m_MessengerInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+            m_MessengerInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
+                | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+            m_MessengerInfo.pfnUserCallback = debugCallback;
+            m_MessengerInfo.pUserData = nullptr;
+            m_MessengerInfo.flags = 0;
+
+            m_InstanceCreateInfo.pNext = &m_MessengerInfo;
+        #endif
 
         if (volkInitialize() != VK_SUCCESS) throw ERR_VOLK_INIT_FAIL;
         if (vkCreateInstance(&m_InstanceCreateInfo, nullptr, &m_instance) != VK_SUCCESS) throw ERR_INSTANCE_CREATION;
         volkLoadInstance(m_instance);
-        if (vkCreateDebugUtilsMessengerEXT(m_instance, &m_MessengerInfo, nullptr, &m_messenger)) throw ERR_DEBUG_UTILS_CREATION;
+
+        #ifdef DEBUG
+            if (vkCreateDebugUtilsMessengerEXT(m_instance, &m_MessengerInfo, nullptr, &m_messenger)) throw ERR_DEBUG_UTILS_CREATION;
+        #endif
+        
     }
     ~Instance() {
-        vkDestroyDebugUtilsMessengerEXT(m_instance, m_messenger, nullptr);
+
+        #ifdef DEBUG
+            vkDestroyDebugUtilsMessengerEXT(m_instance, m_messenger, nullptr);
+        #endif
+        
         vkDestroyInstance(m_instance,nullptr);
     }
     VkInstance GetInstance(){return m_instance;}
@@ -601,7 +613,6 @@ void CoreClass::RecordCommandBuffers(VkRenderPass mainRenderPass, std::vector<Vk
 }
 
 void CoreClass::DrawFrame(int currentFrame, VkCommandBuffer commandBuffer) {
-    uint32_t imageIndex;
     if (vkGetFenceStatus(localDevice->GetDevice(), localSyncObjects->GetFences()->at(currentFrame)) != VK_SUCCESS)
     vkWaitForFences(localDevice->GetDevice(), 1, &localSyncObjects->GetFences()->at(currentFrame), VK_TRUE, 1000000000);
 
@@ -747,7 +758,7 @@ void CoreClass::UpdateUniformsForObject(int i) {
             }
         }
 
-        m_sceneContainer->GetObjects()->at(i)->p_m_mesh->UpdateUniforms(currentFrame, mvp, cameraPos, pointLightData);
+        m_sceneContainer->GetObjects()->at(i)->p_m_mesh->UpdateUniforms(imageIndex, mvp, cameraPos, pointLightData);
 
     }
     

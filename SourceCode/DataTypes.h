@@ -1,22 +1,31 @@
 #pragma once
 #define MAX_POINTLIGHT_COUNT 32
-#define USE_VK
+#define USE_GL
 
-
+#define USE_FACE_CULLING
 
 
 #ifdef USE_VK
+    #define MAX_TEXTURE_SLOTS 32
+    #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+    //#define DEBUG
+
     #include "ErrorCodes.h"
     #include <volk.h>
-    #define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+    
     #include <glm/glm.hpp>
     #include <glm/gtx/transform.hpp>
-
+    
     struct VkQueueIndices {
         uint32_t queueIndex1_graphics;
         uint32_t queueIndex2_command;
     };
-
+    namespace DataTypes {
+        struct PushConstants {
+            int material_ID;
+        };
+    }
+    
 
 #endif
 

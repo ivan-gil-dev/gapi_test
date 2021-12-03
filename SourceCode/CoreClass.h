@@ -160,6 +160,8 @@ class CoreClass {
         DepthImage *m_DepthImage;
         std::vector<CommandBuffer> drawCommandBuffers;
         std::vector<CommandBuffer> drawCommandBuffers2;
+
+        uint32_t imageIndex = 0;
         void SubmitAllToQueue();
         void DrawFrame(int currentFrame, VkCommandBuffer commandBuffer);
         void RecordCommandBuffers(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers, int currentFrame, std::vector<CommandBuffer> &drawCommandBuffers);

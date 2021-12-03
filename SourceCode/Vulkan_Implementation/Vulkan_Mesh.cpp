@@ -1,5 +1,6 @@
 #include "../API/Mesh.h"
 #include "_Vulkan_Handles.h"
+#include <set>
 #ifdef USE_VK
 void Mesh::UpdateUniforms(int currentFrame, DataTypes::MVP& mvp, glm::vec3& camPos, std::vector<PointLightData>& pointLightData) {
     int pointLightIndex = 0;
@@ -24,6 +25,8 @@ void Mesh::UpdateUniforms(int currentFrame, DataTypes::MVP& mvp, glm::vec3& camP
 }
 
 void Mesh::InitDescriptorSets() {
+    blankTexture = new Texture(glm::vec3(0,0,0));
+
     {
         std::vector<VkDescriptorSetLayout> setLayouts(extern_Swapchain_Image_View_Count, externSetLayout_uniforms);
 
@@ -107,52 +110,87 @@ void Mesh::InitDescriptorSets() {
 
     std::vector<VkDescriptorSetLayout> setLayouts(extern_Swapchain_Image_View_Count, externSetLayout_samplers);
 
-    for (size_t i = 0; i < material_ID.size(); i++){
-        if (!materialDescriptorSets.count(material_ID[i]))
+   
+    VkDescriptorSetAllocateInfo allocateInfo{};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocateInfo.descriptorPool = externDescriptorPool_samplers;
+    allocateInfo.descriptorSetCount = (uint32_t)setLayouts.size();
+    allocateInfo.pSetLayouts = setLayouts.data();
+
+    materialDescriptorSets.resize(setLayouts.size());
+
+    VkResult result = vkAllocateDescriptorSets(externDevice, &allocateInfo, materialDescriptorSets.data());
+    if (result != VK_SUCCESS) {
+        std::cout << result << std::endl;
+        throw std::runtime_error("Failed to allocate descriptor sets");
+    }
+
+    
+    for (size_t j = 0; j < materialDescriptorSets.size(); j++) {
+
+        std::vector<VkWriteDescriptorSet> writeDescriptorSets;
+
+        std::map<int, Texture*>::iterator it;
+        for (it = dTextures.begin(); it != dTextures.end(); it++)
+        {   
+            VkWriteDescriptorSet dTextureDescriptorSet{};
+            dTextureDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            dTextureDescriptorSet.descriptorCount = 1;
+            dTextureDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            dTextureDescriptorSet.dstSet = materialDescriptorSets[j];
+            dTextureDescriptorSet.dstBinding = 2;
+            dTextureDescriptorSet.dstArrayElement = it->first; 
+            dTextureDescriptorSet.pImageInfo =it->second->GetDescriptor();
+            writeDescriptorSets.push_back(dTextureDescriptorSet);
+
+        }
+
+        for (it = sTextures.begin(); it != sTextures.end(); it++)
         {
-            VkDescriptorSetAllocateInfo allocateInfo{};
-            allocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-            allocateInfo.descriptorPool = externDescriptorPool_samplers;
-            allocateInfo.descriptorSetCount = (uint32_t)setLayouts.size();
-            allocateInfo.pSetLayouts = setLayouts.data();
+            VkWriteDescriptorSet sTextureDescriptorSet{};
+            sTextureDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            sTextureDescriptorSet.descriptorCount = 1;
+            sTextureDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            sTextureDescriptorSet.dstSet = materialDescriptorSets[j];
+            sTextureDescriptorSet.dstBinding = 3;
+            sTextureDescriptorSet.dstArrayElement = it->first;
+            sTextureDescriptorSet.pImageInfo = it->second->GetDescriptor();
+            writeDescriptorSets.push_back(sTextureDescriptorSet);
+        }
 
-            materialDescriptorSets[material_ID[i]].resize(setLayouts.size());
-
-            VkResult result = vkAllocateDescriptorSets(externDevice, &allocateInfo, materialDescriptorSets[material_ID[i]].data());
-            if (result != VK_SUCCESS) {
-                std::cout << result << std::endl;
-                throw std::runtime_error("Failed to allocate descriptor sets");
-            }
-
-            for (size_t j = 0; j < materialDescriptorSets[material_ID[i]].size(); j++) {
-
-                std::vector<VkWriteDescriptorSet> writeDescriptorSets;
-
+        for (size_t i = 0; i < MAX_TEXTURE_SLOTS; i++) {
+            if (!dTextures.count(i))
+            {
                 VkWriteDescriptorSet dTextureDescriptorSet{};
                 dTextureDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 dTextureDescriptorSet.descriptorCount = 1;
                 dTextureDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                dTextureDescriptorSet.dstSet = materialDescriptorSets[material_ID[i]][j];
+                dTextureDescriptorSet.dstSet = materialDescriptorSets[j];
                 dTextureDescriptorSet.dstBinding = 2;
-                dTextureDescriptorSet.dstArrayElement = 0;
-                dTextureDescriptorSet.pImageInfo = dTextures[material_ID[i]]->GetDescriptor();
+                dTextureDescriptorSet.dstArrayElement = i;
+                dTextureDescriptorSet.pImageInfo = blankTexture->GetDescriptor();
                 writeDescriptorSets.push_back(dTextureDescriptorSet);
+            }
 
+            if (!sTextures.count(i))
+            {
                 VkWriteDescriptorSet sTextureDescriptorSet{};
                 sTextureDescriptorSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                 sTextureDescriptorSet.descriptorCount = 1;
                 sTextureDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                sTextureDescriptorSet.dstSet = materialDescriptorSets[material_ID[i]][j];
+                sTextureDescriptorSet.dstSet = materialDescriptorSets[j];
                 sTextureDescriptorSet.dstBinding = 3;
-                sTextureDescriptorSet.dstArrayElement = 0;
-                sTextureDescriptorSet.pImageInfo = sTextures[material_ID[i]]->GetDescriptor();
+                sTextureDescriptorSet.dstArrayElement = i;
+                sTextureDescriptorSet.pImageInfo = blankTexture->GetDescriptor();
                 writeDescriptorSets.push_back(sTextureDescriptorSet);
-
-                vkUpdateDescriptorSets(externDevice, (uint32_t)writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
-                writeDescriptorSets.resize(0);
             }
         }
+
+
+        vkUpdateDescriptorSets(externDevice, (uint32_t)writeDescriptorSets.size(), writeDescriptorSets.data(), 0, nullptr);
+        writeDescriptorSets.resize(0);
     }
+     
 
 }
 
@@ -166,15 +204,12 @@ void Mesh::ClearDescriptorSets() {
         uniformDescriptorSets.data()
     );
     
-    for (it = materialDescriptorSets.begin(); it != materialDescriptorSets.end(); it++)
-    {
-        vkFreeDescriptorSets(
-            externDevice,
-            externDescriptorPool_samplers,
-            (uint32_t)it->second.size(),
-            it->second.data()
-        );
-    }
+    vkFreeDescriptorSets(
+        externDevice,
+        externDescriptorPool_samplers,
+        (uint32_t)materialDescriptorSets.size(),
+        materialDescriptorSets.data()
+    );
 }
 
 void Mesh::InitUniformBuffers() {
@@ -626,7 +661,12 @@ void Mesh::Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLa
         VK_PIPELINE_BIND_POINT_GRAPHICS,
         pipeline
     );
-  
+
+    VkDescriptorSet Sets[] = { uniformDescriptorSets[imageIndex], materialDescriptorSets[imageIndex] };
+
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Layout,
+        0, 2, Sets, 0, nullptr);
+
     for (size_t i = 0; i < material_ID.size(); i++)
     {
         VkBuffer buffers[] = { vertexArrays[0]->GetVertexBuffer() };
@@ -634,13 +674,15 @@ void Mesh::Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLa
 
         vkCmdBindVertexBuffers(commandBuffer, 0, 1, buffers, offsets);
 
-        VkDescriptorSet Sets[] = { uniformDescriptorSets[0], materialDescriptorSets[material_ID[i]][0] };
-
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Layout,
-            0, 2, Sets, 0, nullptr);
-
         VkBuffer indexBuffers[] = { vertexArrays[0]->GetIndexBuffer() };
         VkDeviceSize indexOffsets[] = { 0 };
+
+
+        DataTypes::PushConstants constants;
+        constants.material_ID = material_ID[i];
+
+        vkCmdPushConstants(commandBuffer, Layout,
+            VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(constants), &constants);
 
         vkCmdBindIndexBuffer(commandBuffer, indexBuffers[0], indexOffsets[0], VK_INDEX_TYPE_UINT32);
 
@@ -656,7 +698,7 @@ void Mesh::Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLa
 Mesh::~Mesh() {
     ClearDescriptorSets();
     ClearUniformBuffers();
-    
+    delete blankTexture;
 
     std::map<int, Texture*>::iterator it;
     for (it = dTextures.begin(); it != dTextures.end(); it++)

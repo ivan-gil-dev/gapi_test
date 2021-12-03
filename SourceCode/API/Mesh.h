@@ -40,10 +40,12 @@ private:
         void InitDescriptorSets();
         void ClearDescriptorSets();
 
+        Texture* blankTexture;
+
         std::map<int, VkDeviceSize> m_UniformOffsets;
         std::map<int, UniformBuffer> m_UniformBuffer;
 
-        std::map<int, std::vector<VkDescriptorSet>> materialDescriptorSets;
+        std::vector<VkDescriptorSet> materialDescriptorSets;
         std::vector<VkDescriptorSet> uniformDescriptorSets;
 
         std::map<int, unsigned int> firstIndexPerMesh;

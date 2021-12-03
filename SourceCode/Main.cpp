@@ -109,8 +109,8 @@ SceneContainer* TestKettle() {
     pLight->p_m_transformMatrices->Translate(glm::vec3(4.f, 4.f, 4.f));
     pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
     pLight->GetPointLightData()->phongParams.x = 0.2;
-    pLight->GetPointLightData()->phongParams.y = 1.0;
-    pLight->GetPointLightData()->phongParams.z = 0.5;
+    pLight->GetPointLightData()->phongParams.y = 2.5;
+    pLight->GetPointLightData()->phongParams.z = 2.5;
 
     float r = 1.0;
     float g = 1.0;
