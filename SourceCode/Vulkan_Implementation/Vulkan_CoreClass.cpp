@@ -668,9 +668,12 @@ void CoreClass::DrawFrame(int currentFrame, VkCommandBuffer commandBuffer) {
 void CoreClass::Play(SceneContainer* sceneContainer) {
     m_sceneContainer = sceneContainer;
 
-    RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), 0, drawCommandBuffers);
-    RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), 1, drawCommandBuffers);
-    RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), 2, drawCommandBuffers);
+
+    for (size_t i = 0; i < extern_MAX_FRAMES; i++)
+    {
+        RecordCommandBuffers(p_m_program->GetRenderPass(), localFramebuffer->GetFrameBuffers(), i, drawCommandBuffers);
+    }
+    
 
 
     while (!glfwWindowShouldClose(p_m_window))//Пока окно не закрыто

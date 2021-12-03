@@ -1,36 +1,4 @@
-﻿  GL_CoreClass.cpp
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(49,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(50,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(54,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(55,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(61,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(62,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-  GL_Mesh.cpp
-  GL_Program.cpp
-  GL_Texture.cpp
-  GL_VertexArray.cpp
-  Main.cpp
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(49,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(50,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(54,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(55,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(61,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(62,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Main.cpp(57,53): warning C4305: =: усечение из "double" в "T"
-          with
-          [
-              T=float
-          ]
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Main.cpp(66,18): warning C4305: инициализация: усечение из "double" в "float"
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Main.cpp(67,18): warning C4305: инициализация: усечение из "double" в "float"
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Main.cpp(68,18): warning C4305: инициализация: усечение из "double" в "float"
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Main.cpp(111,53): warning C4305: =: усечение из "double" в "T"
-          with
-          [
-              T=float
-          ]
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Main.cpp(139,15): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
-  Vulkan_CoreClass.cpp
+﻿  Vulkan_CoreClass.cpp
 G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(49,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
 G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(50,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
 G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(54,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
@@ -41,74 +9,7 @@ G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp
 G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(161,1): warning C4267: =: преобразование из "size_t" в "uint32_t"; возможна потеря данных
 G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(468,72): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
 G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(469,88): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(684,37): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(707,38): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-  Vulkan_Mesh.cpp
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(10,94): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(14,97): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(20,99): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(63,48): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(64,51): warning C4244: =: преобразование "VkDeviceSize" в "int", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(77,48): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(78,51): warning C4244: =: преобразование "VkDeviceSize" в "int", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(86,35): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(86,56): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(87,50): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(87,82): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(87,58): warning C4244: =: преобразование "VkDeviceSize" в "int", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(94,60): warning C4267: =: преобразование из "size_t" в "uint32_t"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(95,78): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(101,20): warning C4267: аргумент: преобразование из "size_t" в "const int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(102,39): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(162,16): warning C4267: аргумент: преобразование из "size_t" в "const int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(170,58): warning C4267: =: преобразование из "size_t" в "uint32_t"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(175,16): warning C4267: аргумент: преобразование из "size_t" в "const int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(183,58): warning C4267: =: преобразование из "size_t" в "uint32_t"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(218,26): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(249,97): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(289,98): warning C4267: аргумент: преобразование из "size_t" в "unsigned int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(399,73): warning C4267: аргумент: преобразование из "size_t" в "_Ty"; возможна потеря данных
-          with
-          [
-              _Ty=unsigned int
-          ]
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(408,39): warning C4267: =: преобразование из "size_t" в "unsigned int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(493,73): warning C4267: аргумент: преобразование из "size_t" в "_Ty"; возможна потеря данных
-          with
-          [
-              _Ty=unsigned int
-          ]
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(503,39): warning C4267: =: преобразование из "size_t" в "unsigned int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(528,28): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(529,25): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(530,30): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(560,29): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(567,32): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(567,55): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(568,32): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(568,58): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(570,34): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(571,34): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(571,62): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(597,28): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(598,25): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(599,30): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(625,29): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(643,32): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(643,57): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(644,32): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(644,60): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(646,34): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(647,34): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(647,64): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(673,57): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(689,67): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Mesh.cpp(689,92): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-  Vulkan_Program.cpp
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Program.cpp(355,18): warning C4244: =: преобразование "int" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Program.cpp(356,23): warning C4244: =: преобразование "int" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Program.cpp(357,22): warning C4244: =: преобразование "int" в "float", возможна потеря данных
-  Vulkan_Texture.cpp
-  Vulkan_VertexArray.cpp
-  Создание кода...
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(674,118): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(687,37): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(710,38): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
   ApiTest.vcxproj -> G:\dev\cpp\ApiTest\ApiTest\x64\Debug\ApiTest.exe
