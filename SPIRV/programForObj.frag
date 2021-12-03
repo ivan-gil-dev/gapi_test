@@ -1,6 +1,6 @@
  #version 440 core
 
-    #define MAX_POINTLIGHT_COUNT 32
+    #define MAX_POINTLIGHT_COUNT 4
     #define MAX_TEXTURE_SLOTS 32
 
     layout(location = 0) in vec3 f_Color; 

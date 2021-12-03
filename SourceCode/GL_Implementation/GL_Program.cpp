@@ -34,7 +34,7 @@ const char* vertexShaderSRC = R"glsl(
 const char* fragmentShaderSRC = R"glsl(
     #version 440 core
 
-    #define MAX_POINTLIGHT_COUNT 64
+    #define MAX_POINTLIGHT_COUNT 4
   
     layout(location = 0) in vec3 f_Color; 
     layout(location = 1) in vec2 f_UV;

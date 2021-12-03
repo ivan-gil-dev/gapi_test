@@ -1,6 +1,6 @@
 #pragma once
-#define MAX_POINTLIGHT_COUNT 32
-#define USE_GL
+#define MAX_POINTLIGHT_COUNT 4
+#define USE_VK
 
 #define USE_FACE_CULLING
 
