@@ -152,6 +152,11 @@ class Device {
         static std::vector<const char*> Layers = { "VK_LAYER_KHRONOS_validation" };
         static std::vector<const char*> deviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
+        VkPhysicalDeviceFeatures supportedFeatures;
+        vkGetPhysicalDeviceFeatures(m_physicalDevice, &supportedFeatures);
+        
+        VkPhysicalDeviceFeatures enabledFeatures{};
+        enabledFeatures.samplerAnisotropy = VK_TRUE;
 
         VkDeviceCreateInfo deviceCreateInfo{};
         deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -161,7 +166,7 @@ class Device {
         deviceCreateInfo.enabledLayerCount = Layers.size();
         deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
         deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
-
+        deviceCreateInfo.pEnabledFeatures = &enabledFeatures;
         if(vkCreateDevice(m_physicalDevice, &deviceCreateInfo, nullptr, &m_device)!=VK_SUCCESS)
             throw ERR_DEVICE_CREATION;
 

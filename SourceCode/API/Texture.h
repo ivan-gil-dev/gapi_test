@@ -16,6 +16,7 @@ class Texture {
 #endif
 
 #ifdef USE_VK
+    uint32_t mipLevels;
     VkImage m_Image;
     VkImageView m_ImageView;
     VkSampler m_Sampler;
@@ -23,6 +24,7 @@ class Texture {
     VkDescriptorImageInfo m_Descriptor{};
     void CreateImageView(VkDevice device);
     void CreateSampler(VkDevice device);
+    void GenerateMipMaps(VkDevice device, VkImage image, VkFormat imageFormat, int32_t texWidth, int32_t texHeight, uint32_t mipLevels);
 #endif
 
     

@@ -87,7 +87,7 @@ public:
         yaw = -90;
         pitch = 0;
 
-        projection = glm::perspective(glm::radians(80.f), 16.f / 9, 0.1f, 10000.f);
+        projection = glm::perspective(glm::radians(80.f), 16.f / 9, 0.1f, 100000.f);
         pos = glm::vec3(3.f, 3.f, 3.f);
         translation = glm::mat4(1.0f);
         translation = glm::translate(translation, -pos);

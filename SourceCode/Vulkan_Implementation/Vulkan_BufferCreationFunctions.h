@@ -108,7 +108,7 @@ public:
 inline void Img_Func_CreateImage(VkPhysicalDevice physicalDevice, VkDevice device, VkImage& image,
     VkDeviceMemory& imageTextureMemory, uint32_t width, uint32_t height, VkImageTiling tiling,
     VkMemoryPropertyFlags properties, VkFormat format, VkImageUsageFlags usage, VkSampleCountFlagBits samples,
-    uint32_t arrayLayers, VkImageCreateFlags flags) {
+    uint32_t arrayLayers, VkImageCreateFlags flags, uint32_t mipLevels) {
     //Ширина, высота изображения//
     VkExtent3D extent = { width,height,1 };
 
@@ -121,7 +121,7 @@ inline void Img_Func_CreateImage(VkPhysicalDevice physicalDevice, VkDevice devic
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;//2d изображение//
         imageCreateInfo.format = format;//формат изображения//
         imageCreateInfo.extent = extent;//размеры//
-        imageCreateInfo.mipLevels = (uint32_t)1;
+        imageCreateInfo.mipLevels = mipLevels;
         imageCreateInfo.arrayLayers = arrayLayers;//сколько изображений если это массив//
         imageCreateInfo.samples = samples;////
         imageCreateInfo.tiling = tiling;
@@ -310,6 +310,7 @@ class DepthImage {
         ImageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
         ImageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
         ImageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
         ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
         ImageViewCreateInfo.subresourceRange.levelCount = 1;
         ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
@@ -340,31 +341,32 @@ class DepthImage {
             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
             DepthFormat,
             //Используется как Z-буфер//
-            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
             VK_SAMPLE_COUNT_1_BIT,
             (uint32_t)1,
-            NULL
+            NULL,
+            1
         );
 
         CreateDepthImageView(logicalDevice);
 
-        VkImageSubresourceRange subresourceRange{};
-        subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-        subresourceRange.baseArrayLayer = 0;
-        subresourceRange.baseMipLevel = 0;
-        subresourceRange.layerCount = 1;
-        subresourceRange.levelCount = 1;
+        //VkImageSubresourceRange subresourceRange{};
+        //subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        //subresourceRange.baseArrayLayer = 0;
+        //subresourceRange.baseMipLevel = 0;
+        //subresourceRange.layerCount = 1;
+        //subresourceRange.levelCount = 1;
 
-        //Перевод в слой для z-буфера//
-        Img_Func_TransitionImageLayout(
-            logicalDevice,
-            commandBufferQueue,
-            commandPool,
-            vDepthImage,
-            VK_IMAGE_LAYOUT_UNDEFINED,
-            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-            subresourceRange
-        );
+        ////Перевод в слой для z-буфера//
+        //Img_Func_TransitionImageLayout(
+        //    logicalDevice,
+        //    commandBufferQueue,
+        //    commandPool,
+        //    vDepthImage,
+        //    VK_IMAGE_LAYOUT_UNDEFINED,
+        //    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+        //    subresourceRange
+        //);
     }
 
     void Destroy(VkDevice device) {

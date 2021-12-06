@@ -82,8 +82,8 @@ G:\dev\cpp\ApiTest\ApiTest\SourceCode\API\Texture.h(9,10): warning C4067: неп
   Vulkan_VertexArray.cpp
 LINK : warning LNK4098: библиотека по умолчанию "MSVCRTD" конфликтует с использованием других библиотек; используйте /NODEFAULTLIB:library
   Создание кода
-  855 of 938 functions (91.2%) were compiled, the rest were copied from previous compilation.
-    103 functions were new in current compilation
-    10 functions had inline decision re-evaluated but remain unchanged
+  0 of 938 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
   Создание кода завершено
   ApiTest.vcxproj -> G:\dev\cpp\ApiTest\ApiTest\x64\Release\ApiTest.exe

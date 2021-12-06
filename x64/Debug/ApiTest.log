@@ -1,15 +1,3 @@
-﻿  Vulkan_CoreClass.cpp
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(49,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(50,26): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(54,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(55,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(61,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\CoreClass.h(62,22): warning C4244: =: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(54,1): warning C4267: =: преобразование из "size_t" в "uint32_t"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(161,1): warning C4267: =: преобразование из "size_t" в "uint32_t"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(468,72): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(469,88): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(674,118): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(687,37): warning C4244: аргумент: преобразование "double" в "float", возможна потеря данных
-G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_CoreClass.cpp(710,38): warning C4267: аргумент: преобразование из "size_t" в "int"; возможна потеря данных
+﻿  Vulkan_Texture.cpp
+G:\dev\cpp\ApiTest\ApiTest\SourceCode\Vulkan_Implementation\Vulkan_Texture.cpp(145,26): warning C4244: =: преобразование "uint32_t" в "float", возможна потеря данных
   ApiTest.vcxproj -> G:\dev\cpp\ApiTest\ApiTest\x64\Debug\ApiTest.exe
