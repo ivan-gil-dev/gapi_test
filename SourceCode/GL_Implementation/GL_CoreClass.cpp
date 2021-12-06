@@ -26,7 +26,7 @@ CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
         glEnable(GL_CULL_FACE);
         glCullFace(GL_BACK); //Не отрисовывать полигоны на заднем плане//
     #endif // USE_FACE_CULLING
-
+        glEnable(GL_FRAMEBUFFER_SRGB);
 
 }
 
