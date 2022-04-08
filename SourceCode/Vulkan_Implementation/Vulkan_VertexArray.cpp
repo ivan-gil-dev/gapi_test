@@ -13,52 +13,37 @@ VkBuffer VertexArray::GetVertexBuffer() {
 
 
 VertexArray::VertexArray(std::vector<DataTypes::Vertex> &vertices, std::vector<unsigned int> &indices){
+
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingMemory;
 
     VkDeviceSize VertexBufferSize = sizeof(vertices[0]) * vertices.size();
     VkDeviceSize IndexBufferSize = sizeof(indices[0]) * indices.size();
 
-    //---vertex-buffer----------------------------------------------------------------------
-    //Создание промежуточного буфера в памяти хоста//
-    //Буфер доступен для записи//
-    Buf_Func_CreateBuffer(
-        externPhysicalDevice,
-        externDevice,
+    //Create Staging Buffer using Host Memory (RAM)
+    Buf_Func_CreateBuffer(externPhysicalDevice, externDevice, 
         VertexBufferSize,
         stagingBuffer,
         stagingMemory,
-        //Тип буфера: источник передачи
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-        //видимая и доступная для записи память хоста (RAM или SRAM)
         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
     );
 
-    //Запись данных в промежуточный буфер//
-    void* data;
+    //Write data to staging buffer (RAM)
+    void* data; 
     vkMapMemory(externDevice, stagingMemory, 0, VertexBufferSize, 0, &data);
     memcpy(data, vertices.data(), VertexBufferSize);
     vkUnmapMemory(externDevice, stagingMemory);
 
-    //Создание буфера в памяти GPU недоступного для записи из хоста//
-    Buf_Func_CreateBuffer(
-        externPhysicalDevice,
-        externDevice,
-        VertexBufferSize,
-        m_VertexBuffer,
+    //Create Buffer using GPU memory (SGRAM)
+    Buf_Func_CreateBuffer(externPhysicalDevice, externDevice, VertexBufferSize, m_VertexBuffer,
         m_VertexBufferDeviceMemory,
-        //Тип буфера: приемник передачи, вершинный буфер//
         VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-        //Локальная память GPU//
         VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
     );
 
-    //Перемещение данных из буфера в памяти хоста//
-    //в буфер в памяти GPU//
-    Buf_Func_CopyBuffer(
-        externDevice,
-        externCommandPool,
-        externMainQueue,
+    //Copy data from Host buffer to GPU buffer (RAM -> SGRAM) 
+    Buf_Func_CopyBuffer(externDevice, externCommandPool, externMainQueue,
         stagingBuffer,
         m_VertexBuffer,
         0,

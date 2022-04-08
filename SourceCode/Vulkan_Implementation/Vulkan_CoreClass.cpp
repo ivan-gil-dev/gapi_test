@@ -4,9 +4,6 @@
 #include <future>
 #ifdef USE_VK
 
-
-
-
 int currentFrame = 0;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
@@ -602,6 +599,7 @@ void CoreClass::RecordCommandBuffers(VkRenderPass mainRenderPass, std::vector<Vk
         renderPassBeginInfo.clearValueCount = 2;
 
         drawCommandBuffers[currentFrame].BeginCommandBuffer();
+
         vkCmdBeginRenderPass(drawCommandBuffers[currentFrame].Get(), &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         for (size_t j = 0; j < m_sceneContainer->GetObjects()->size(); j++) {

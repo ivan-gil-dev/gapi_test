@@ -223,10 +223,9 @@ inline void Img_Func_TransitionImageLayout(VkDevice device, VkQueue pipelineBarr
 //Копировать из буфера в изображение//
 inline void Img_Func_CopyBufferToImage(VkDevice device, VkQueue copyBufferQueue,
     VkCommandPool commandPool, VkImage image, VkBuffer buffer, uint32_t width, uint32_t height) {
-    CommandBuffer commandBuffer;
-    commandBuffer.AllocateCommandBuffer(device, commandPool);
-    commandBuffer.BeginCommandBuffer();
 
+
+    
     //Размеры изображения//
     VkBufferImageCopy bufferImageCopy{};
     bufferImageCopy.imageExtent.width = width;
@@ -242,7 +241,10 @@ inline void Img_Func_CopyBufferToImage(VkDevice device, VkQueue copyBufferQueue,
     bufferImageCopy.imageSubresource.baseArrayLayer = 0;
     bufferImageCopy.imageSubresource.layerCount = 1;
     bufferImageCopy.imageSubresource.mipLevel = 0;
-    
+
+    CommandBuffer commandBuffer;
+    commandBuffer.AllocateCommandBuffer(device, commandPool);
+    commandBuffer.BeginCommandBuffer();
     
     vkCmdCopyBufferToImage(commandBuffer.Get(), buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferImageCopy);
 
@@ -254,6 +256,7 @@ inline void Img_Func_CopyBufferToImage(VkDevice device, VkQueue copyBufferQueue,
 //Копировать из буфера (в котором 6 изображений) в изображение
 inline void Img_func_CopyBufferToCubemap(VkDevice device, VkQueue copyBufferQueue, VkCommandPool commandPool,
     VkImage image, VkBuffer buffer, uint32_t width, uint32_t height) {
+
     CommandBuffer commandBuffer;
     commandBuffer.AllocateCommandBuffer(device, commandPool);
     commandBuffer.BeginCommandBuffer();

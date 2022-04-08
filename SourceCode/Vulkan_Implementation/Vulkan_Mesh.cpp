@@ -528,7 +528,6 @@ Mesh::Mesh(std::string path) {
         firstIndexPerMesh[i] = 0;
         indexesPerMesh[i] = 0;
         vertexBufferOffsets[i] = 0;
-
         
         for (size_t j = 0; j < scene->mMeshes[i]->mNumVertices; j++) {
 
@@ -677,7 +676,6 @@ void Mesh::Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLa
         VkBuffer indexBuffers[] = { vertexArrays[0]->GetIndexBuffer() };
         VkDeviceSize indexOffsets[] = { 0 };
 
-
         DataTypes::PushConstants constants;
         constants.material_ID = material_ID[i];
 
@@ -685,14 +683,9 @@ void Mesh::Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLa
             VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(constants), &constants);
 
         vkCmdBindIndexBuffer(commandBuffer, indexBuffers[0], indexOffsets[0], VK_INDEX_TYPE_UINT32);
-
         vkCmdDrawIndexed(commandBuffer, (uint32_t)indexesPerMesh[i], 1, firstIndexPerMesh[i], 0, 0);
     }
 
-    
-
-
-    
 }
 
 Mesh::~Mesh() {

@@ -58,6 +58,7 @@ public:
     Mesh(ShapeType shapeType, glm::vec3 color);
     Mesh(std::string path);
     Mesh(std::string path, glm::vec3 color);
+    ~Mesh();
 
     #ifdef USE_GL
         void Draw();
@@ -70,6 +71,5 @@ public:
         void Draw(VkCommandBuffer commandBuffer, VkPipeline pipeline, VkPipelineLayout Layout, int imageIndex);
     #endif
 
-    ~Mesh();
-
+   
 };

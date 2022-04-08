@@ -52,7 +52,8 @@ SceneContainer* CreateScene() {
     //container->AddDefaultObject(obj);
 
     PointLight* pLight = new PointLight;
-    pLight->p_m_transformMatrices->Translate(glm::vec3(0, 100.f, 0));
+    //pLight->p_m_transformMatrices->Translate(glm::vec3(0, 100.f, 0));
+    pLight->p_m_transformMatrices->Translate(glm::vec3(200, 500.f, 0));
     //pLight->p_m_mesh = new Mesh(ShapeType::Cube, glm::vec3(255, 255, 255));
     pLight->GetPointLightData()->phongParams.x = 0.2;
     pLight->GetPointLightData()->phongParams.y = 700.0;
@@ -133,8 +134,8 @@ SceneContainer* TestKettle() {
 int main() {
     WindowProperties properties;
     properties.title = "App";
-    properties.width = 1366;
-    properties.height = 768; 
+    properties.width = 800;
+    properties.height = 600; 
 
     srand(time(NULL));
     

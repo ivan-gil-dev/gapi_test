@@ -388,6 +388,19 @@ void Mesh::Draw() {
                 GL_UNSIGNED_INT,//Тип данных индексов: беззнаковое целочисленное
                 0
             );
+
+
+
+            glBindVertexArray(vertexArrays[i]->GetVertexArray());
+
+ 
+            glDrawElements(
+                GL_TRIANGLES,
+                vertexArrays[i]->GetIndices().size(),
+                GL_UNSIGNED_INT,
+                0
+            );
+
         }
     }
 

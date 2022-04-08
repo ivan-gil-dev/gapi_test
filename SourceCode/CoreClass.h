@@ -167,6 +167,7 @@ class CoreClass {
         void RecordCommandBuffers(VkRenderPass mainRenderPass, std::vector<VkFramebuffer> frameBuffers, int currentFrame, std::vector<CommandBuffer> &drawCommandBuffers);
     #endif
 
+   
 
 
     public:

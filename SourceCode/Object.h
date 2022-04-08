@@ -30,7 +30,11 @@ public:
         }
     #endif
 
+    #ifdef USE_DX12
+        void Draw() {
 
+        }
+    #endif
 
     Object() {
         m_type = OBJECT_TYPE_DEFAULT;

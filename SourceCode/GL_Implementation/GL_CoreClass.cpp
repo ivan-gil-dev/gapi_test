@@ -9,6 +9,11 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 
 CoreClass::CoreClass(WindowProperties properties) : m_properties(properties) {
     if (!glfwInit()) throw ERR_GLFW_INIT_FAIL;
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
     p_m_window = glfwCreateWindow(m_properties.width, m_properties.height, m_properties.title, nullptr, nullptr);
     glfwMakeContextCurrent(p_m_window);
 
